@@ -853,7 +853,7 @@ add_specific_collectible() {
                 collectibles_menu
                 return
             fi
-        elif [ "$item_choice" -ge 1 ] && [ "$item_choice" -lt "$counter" ]; then
+        elif [[ "$item_choice" =~ ^[0-9]+$ ]] && [ "$item_choice" -ge 1 ] && [ "$item_choice" -lt "$counter" ]; then
             item_name="${item_array[$((item_choice-1))]}"
             
             # Check if already collected
