@@ -1141,9 +1141,9 @@ progress_overview() {
     dlc_quests=$(echo "$char_data" | jq '.quests.dlc | length')
     modded_quests=$(echo "$char_data" | jq '.quests.modded | length')
     
-    echo "  Main Quests:   $main_quests active"
+    echo -e "  Main Quests:   ${GRAY}$main_quests active (tracking disabled)${NC}"
     if [[ "$game_type" == *"DLC"* ]]; then
-        echo "  DLC Quests:    $dlc_quests active"
+        echo -e "  DLC Quests:    ${GRAY}$dlc_quests active (tracking disabled)${NC}"
     fi
     if [[ "$game_type" == *"Modded"* ]]; then
         echo "  Modded Quests: $modded_quests active"
@@ -1967,13 +1967,9 @@ dlc_modded_menu() {
         echo
     fi
     
-    echo "1. Main Quest Progress"
+    echo -e "${GRAY}1. Main Quest Progress (Temporarily Disabled)${NC}"
     
-    if [[ "$game_type" == *"DLC"* ]]; then
-        echo "2. DLC Quest Progress"
-    else
-        echo -e "${GRAY}2. DLC Quest Progress (Not Available)${NC}"
-    fi
+    echo -e "${GRAY}2. DLC Quest Progress (Temporarily Disabled)${NC}"
     
     if [[ "$game_type" == *"Modded"* ]]; then
         echo "3. Modded Quest Progress"
@@ -1988,16 +1984,14 @@ dlc_modded_menu() {
     
     case $choice in
         1)
-            quest_manager "main"
+            echo -e "${RED}Main quest tracking is temporarily disabled${NC}"
+            sleep 2
+            dlc_modded_menu
             ;;
         2)
-            if [[ "$game_type" == *"DLC"* ]]; then
-                quest_manager "dlc"
-            else
-                echo -e "${RED}DLC content not enabled for this character${NC}"
-                sleep 2
-                dlc_modded_menu
-            fi
+            echo -e "${RED}DLC quest tracking is temporarily disabled${NC}"
+            sleep 2
+            dlc_modded_menu
             ;;
         3)
             if [[ "$game_type" == *"Modded"* ]]; then
@@ -2055,7 +2049,12 @@ quest_manager() {
     echo -e "${CYAN}$quest_title${NC}"
     echo
     
-    quests=$(jq -r ".[] | select(.id == \"$char_id\") | .quests.$quest_type[]" "$CHARACTERS_FILE" 2>/dev/null)
+    if [ "$quest_type" = "modded" ]; then
+        # For modded quests, display with mod information
+        quests=$(jq -r ".[] | select(.id == \"$char_id\") | .quests.$quest_type[]? | if type == \"object\" then \"\(.name) (\(.mod_name) by \(.creator))\" else . end" "$CHARACTERS_FILE" 2>/dev/null)
+    else
+        quests=$(jq -r ".[] | select(.id == \"$char_id\") | .quests.$quest_type[]" "$CHARACTERS_FILE" 2>/dev/null)
+    fi
     
     if [ -z "$quests" ]; then
         echo "No quests tracked yet"
@@ -2073,9 +2072,25 @@ quest_manager() {
     
     case $choice in
         1)
-            read -p "Enter quest name: " quest_name
-            jq "map(if .id == \"$char_id\" then .quests.$quest_type += [\"$quest_name\"] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
-            echo -e "${GREEN}Quest added: $quest_name${NC}"
+            if [ "$quest_type" = "modded" ]; then
+                read -p "Enter quest name: " quest_name
+                read -p "Enter mod name: " mod_name
+                read -p "Enter mod creator: " creator
+                read -p "Enter mod source (optional): " source
+                
+                if [ -z "$source" ]; then
+                    quest_obj="{\"name\": \"$quest_name\", \"mod_name\": \"$mod_name\", \"creator\": \"$creator\"}"
+                else
+                    quest_obj="{\"name\": \"$quest_name\", \"mod_name\": \"$mod_name\", \"creator\": \"$creator\", \"source\": \"$source\"}"
+                fi
+                
+                jq "map(if .id == \"$char_id\" then .quests.$quest_type += [$quest_obj] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                echo -e "${GREEN}Modded quest added: $quest_name from $mod_name${NC}"
+            else
+                read -p "Enter quest name: " quest_name
+                jq "map(if .id == \"$char_id\" then .quests.$quest_type += [\"$quest_name\"] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                echo -e "${GREEN}Quest added: $quest_name${NC}"
+            fi
             sleep 1
             quest_manager "$quest_type"
             ;;
@@ -2086,9 +2101,16 @@ quest_manager() {
                 quest_manager "$quest_type"
             else
                 read -p "Enter quest number to mark complete: " quest_num
-                quest_name=$(echo "$quests" | sed -n "${quest_num}p")
-                jq "map(if .id == \"$char_id\" then .quests.$quest_type = [.quests.${quest_type}[] | select(. != \"$quest_name\")] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
-                echo -e "${GREEN}Quest completed: $quest_name${NC}"
+                quest_display=$(echo "$quests" | sed -n "${quest_num}p")
+                
+                if [ "$quest_type" = "modded" ]; then
+                    # For modded quests, we need to find by index since we have objects
+                    quest_index=$((quest_num - 1))
+                    jq "map(if .id == \"$char_id\" then .quests.$quest_type |= del(.[$quest_index]) else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                else
+                    jq "map(if .id == \"$char_id\" then .quests.$quest_type = [.quests.${quest_type}[] | select(. != \"$quest_display\")] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                fi
+                echo -e "${GREEN}Quest completed: $quest_display${NC}"
                 sleep 1
                 quest_manager "$quest_type"
             fi
@@ -2100,9 +2122,16 @@ quest_manager() {
                 quest_manager "$quest_type"
             else
                 read -p "Enter quest number to remove: " quest_num
-                quest_name=$(echo "$quests" | sed -n "${quest_num}p")
-                jq "map(if .id == \"$char_id\" then .quests.$quest_type = [.quests.${quest_type}[] | select(. != \"$quest_name\")] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
-                echo -e "${GREEN}Quest removed: $quest_name${NC}"
+                quest_display=$(echo "$quests" | sed -n "${quest_num}p")
+                
+                if [ "$quest_type" = "modded" ]; then
+                    # For modded quests, we need to find by index since we have objects
+                    quest_index=$((quest_num - 1))
+                    jq "map(if .id == \"$char_id\" then .quests.$quest_type |= del(.[$quest_index]) else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                else
+                    jq "map(if .id == \"$char_id\" then .quests.$quest_type = [.quests.${quest_type}[] | select(. != \"$quest_display\")] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                fi
+                echo -e "${GREEN}Quest removed: $quest_display${NC}"
                 sleep 1
                 quest_manager "$quest_type"
             fi
@@ -2192,17 +2221,95 @@ remove_character() {
     fi
 }
 
-# Check for jq dependency
+# Check for jq dependency and offer auto-installation
 check_dependencies() {
     if ! command -v jq &> /dev/null; then
         echo -e "${RED}Error: jq is required but not installed.${NC}"
-        echo "Install it using:"
-        echo "  Ubuntu/Debian: sudo apt install jq"
-        echo "  MacOS: brew install jq"
-        echo "  Fedora: sudo dnf install jq"
-        echo "  Arch: sudo pacman -Sy jq"
-        exit 1
+        echo -e "${YELLOW}Would you like to install jq automatically? [y/N]${NC}"
+        read -p "> " install_choice
+        
+        if [[ "$install_choice" =~ ^[Yy]$ ]]; then
+            echo -e "${CYAN}Detecting platform and attempting installation...${NC}"
+            
+            # Detect OS and package manager
+            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                if command -v apt &> /dev/null; then
+                    echo "Installing jq using apt..."
+                    sudo apt update && sudo apt install -y jq
+                elif command -v dnf &> /dev/null; then
+                    echo "Installing jq using dnf..."
+                    sudo dnf install -y jq
+                elif command -v yum &> /dev/null; then
+                    echo "Installing jq using yum..."
+                    sudo yum install -y jq
+                elif command -v pacman &> /dev/null; then
+                    echo "Installing jq using pacman..."
+                    sudo pacman -S --noconfirm jq
+                elif command -v zypper &> /dev/null; then
+                    echo "Installing jq using zypper..."
+                    sudo zypper install -y jq
+                else
+                    echo -e "${RED}Could not detect package manager. Please install jq manually.${NC}"
+                    show_manual_install_instructions
+                    exit 1
+                fi
+            elif [[ "$OSTYPE" == "darwin"* ]]; then
+                if command -v brew &> /dev/null; then
+                    echo "Installing jq using Homebrew..."
+                    brew install jq
+                elif command -v port &> /dev/null; then
+                    echo "Installing jq using MacPorts..."
+                    sudo port install jq
+                else
+                    echo -e "${RED}Neither Homebrew nor MacPorts found. Installing Homebrew first...${NC}"
+                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                    brew install jq
+                fi
+            elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+                echo "Windows environment detected. Installing jq using package manager..."
+                if command -v choco &> /dev/null; then
+                    choco install jq
+                elif command -v winget &> /dev/null; then
+                    winget install jqlang.jq
+                else
+                    echo -e "${RED}No supported package manager found on Windows.${NC}"
+                    show_manual_install_instructions
+                    exit 1
+                fi
+            else
+                echo -e "${RED}Unsupported operating system: $OSTYPE${NC}"
+                show_manual_install_instructions
+                exit 1
+            fi
+            
+            # Verify installation
+            if command -v jq &> /dev/null; then
+                echo -e "${GREEN}jq successfully installed!${NC}"
+            else
+                echo -e "${RED}Installation failed. Please install jq manually.${NC}"
+                show_manual_install_instructions
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}Installation cancelled.${NC}"
+            show_manual_install_instructions
+            exit 1
+        fi
     fi
+}
+
+# Show manual installation instructions
+show_manual_install_instructions() {
+    echo -e "${CYAN}Manual installation instructions:${NC}"
+    echo "  Ubuntu/Debian: sudo apt install jq"
+    echo "  Fedora/RHEL:   sudo dnf install jq"
+    echo "  CentOS:        sudo yum install jq"
+    echo "  Arch Linux:    sudo pacman -S jq"
+    echo "  openSUSE:      sudo zypper install jq"
+    echo "  macOS:         brew install jq"
+    echo "  Windows:       choco install jq  OR  winget install jqlang.jq"
+    echo ""
+    echo "Or download from: https://github.com/stedolan/jq/releases"
 }
 
 # Main execution

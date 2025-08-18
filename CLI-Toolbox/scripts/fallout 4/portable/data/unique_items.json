@@ -1,12 +1,98 @@
 [
-  "Cryolator - Vault 111",
-  "Overseer's Guardian - Vault 81",
-  "Deliverer - Railroad HQ",
-  "Righteous Authority - Paladin Danse",
-  "Kellogg's Pistol - Fort Hagen",
-  "Kremvh's Tooth - Dunwich Borers",
-  "Pickman's Blade - Pickman Gallery",
-  "Furious Power Fist - Swan's Pond",
-  "Le Fusil Terribles - Libertalia",
-  "Final Judgment - Elder Maxson"
+  {
+    "category": "Ballistic weapons",
+    "items": [
+      {"name": "December's Child", "variant_of": "Combat Rifle", "location": "Found in DiMA's secret facility in the basement of Vim! Pop Factory", "effect_special": "Lighter and uses 5.56 ammo, 25% faster fire rate, 15% faster reload"},
+      {"name": "Deliverer", "variant_of": "-", "location": "Reward for completing the quest Tradecraft", "effect_special": "Improved VATS hit chance, 25% less Action Point cost"},
+      {"name": "Eddie's Peace", "variant_of": ".44 Pistol", "location": "Found during the quest Long Time Coming", "effect_special": "50% more limb damage"},
+      {"name": "Flare Gun", "variant_of": "-", "location": "Given by Preston Garvey after The First Step", "effect_special": "Summons Minutemen"},
+      {"name": "The Gainer", "variant_of": ".44 Pistol", "location": "Reward for solving the Vitale Pumphouse number puzzle", "effect_special": "Sets target on fire for 15 points of damage"},
+      {"name": "Justice", "variant_of": "Combat Shotgun", "location": "Sold by Penny in Covenant", "effect_special": "Chance to stagger on hit"},
+      {"name": "Kellogg's Pistol", "variant_of": ".44 Pistol", "location": "Found during the quest Reunions", "effect_special": "Refills your Action Points on a Critical Hit"},
+      {"name": "Kiloton Radium Rifle", "variant_of": "Radium Rifle", "location": "Sold by Kane in The Nucleus", "effect_special": "Bullets explode on impact doing 15 points area effect damage"},
+      {"name": "The Last Minute", "variant_of": "Gauss Rifle", "location": "Sold by Ronnie Shaw at The Castle after completing quest Old Guns", "effect_special": "50% more limb damage"},
+      {"name": "Le Fusil Terribles", "variant_of": "Combat Shotgun", "location": "Found in Libertalia on a shelf in the captain's cabin", "effect_special": "+25% damage/limb damage but also significantly increased recoil"},
+      {"name": "Lucky Eddy", "variant_of": "Lever-action rifle", "location": "Reward for completing The Way Life Should Be", "effect_special": "+2 luck bonus (while equipped)"},
+      {"name": "Old Reliable", "variant_of": "Lever-action rifle", "location": "Sold by Dejen at Acadia", "effect_special": "Shoots an additional projectile"},
+      {"name": "Overseer's Guardian", "variant_of": "Combat Rifle", "location": "Sold by Alexis Combes in Vault 81", "effect_special": "Shoots an additional projectile"},
+      {"name": "The Problem Solver", "variant_of": "Handmade Rifle", "location": "Given by Mason during An Ambitious Plan, after passing a hard Charisma check", "effect_special": "Increased damage after each consecutive hit on the same target"},
+      {"name": "Radical Conversion", "variant_of": "Radium Rifle", "location": "Quest reward for completing Ablutions", "effect_special": "Ignores 30% of the target's damage and energy resistance"},
+      {"name": "Reba", "variant_of": "Hunting Rifle", "location": "Dropped by Barney Rook", "effect_special": "No legendary effect"},
+      {"name": "Reba II", "variant_of": "Hunting Rifle", "location": "Potential reward for completing the quest with Barney Rook", "effect_special": "50% more damage against mirelurks and bugs"},
+      {"name": "Silver Submachine Gun", "variant_of": "Submachine Gun", "location": "Reward for the quest The Silver Shroud", "effect_special": "No legendary effect"},
+      {"name": "Splattercannon", "variant_of": "Handmade Rifle", "location": "Sold by Aaron Corbett in the Nuka-Town market", "effect_special": "Increased damage after each consecutive hit on the same target"},
+      {"name": "Spray n' Pray", "variant_of": "Submachine Gun", "location": "Sold by Cricket, a wandering caravan trader", "effect_special": "Each shot deals 15 points of area-of-effect explosive damage on impact"},
+      {"name": "Tinker Tom Special", "variant_of": "Hunting Rifle", "location": "Sold by Tinker Tom in the Railroad HQ", "effect_special": "If you are not yet in combat, increases VATS accuracy but costs more AP"},
+      {"name": "Wastelander's Friend", "variant_of": "10mm Pistol", "location": "Sold by Deb in Bunker Hill", "effect_special": "50% more limb damage"}
+    ]
+  },
+  {
+    "category": "Energy weapons",
+    "items": [
+      {"name": "Alien Blaster Pistol", "variant_of": "-", "location": "Found in a random encounter, see the weapon page for details", "effect_special": "No legendary effect"},
+      {"name": "Cryolator", "variant_of": "-", "location": "In a locked case (Master) located in the Vault 111 overseer's office", "effect_special": "Can freeze enemies"},
+      {"name": "Experiment 18-A", "variant_of": "Plasma Rifle", "location": "Sold by the Synth Requisition Officer in the Institute", "effect_special": "25% faster fire rate, 15% faster reload"},
+      {"name": "Good Intentions", "variant_of": "Laser Rifle", "location": "Carried by the Gunner leader Clint on the elevated freeway camp", "effect_special": "Frenzy enemies on critical hit"},
+      {"name": "Hub's Alien Blaster", "variant_of": "Alien Blaster Pistol", "location": "Given by Dara Hubbell during Trip to the Stars", "effect_special": "Critical shots deal double damage, Critical meter fills 15% faster"},
+      {"name": "Lorenzo's Artifact Gun", "variant_of": "Gamma Gun", "location": "Potential reward for completing the quest The Secret of Cabot House", "effect_special": "Stuns enemies on hit, area of effect"},
+      {"name": "Old Faithful", "variant_of": "Laser Pistol", "location": "Sold by Arturo Rodriguez in the Diamond City Market", "effect_special": "Deals double damage if target is at full health"},
+      {"name": "Protectron's Gaze", "variant_of": "Laser Rifle", "location": "Looted off the Mechanist in The Mechanist's Lair", "effect_special": "25% faster fire rate, 15% faster reload"},
+      {"name": "Prototype UP77 \"Limitless Potential\"", "variant_of": "Laser Rifle", "location": "In a hidden room, opened by a button in a locked safe (Master) inside the University Credit Union", "effect_special": "Unlimited ammo capacity (not unlimited ammo)"},
+      {"name": "Righteous Authority", "variant_of": "Laser Rifle", "location": "Reward for completing the quest Call to Arms", "effect_special": "Critical shots do double damage, Critical meter fills 15% faster"},
+      {"name": "Salvaged Assaultron head", "variant_of": "-", "location": "Found in a large chest shortly before exiting Fort Hagen Hangar, after the fight against Ivey", "effect_special": "Irradiates the shooter by 50 rads (before rad resistance) per weapon discharge"},
+      {"name": "Sentinel's Plasmacaster", "variant_of": "Plasma Rifle", "location": "Sold by Proctor Teagan on the Prydwen after reaching the rank of Sentinel in the Brotherhood of Steel", "effect_special": "Does double damage if target is at full health"},
+      {"name": "Survivor's Special", "variant_of": "Laser Rifle", "location": "Potential reward for completing the quest The Lost Patrol", "effect_special": "Does more damage the lower player health is"},
+      {"name": "Tesla rifle", "variant_of": "-", "location": "Looted off of Ivey's body in Fort Hagen Hangar", "effect_special": "Fires an electrical charge that arcs between targets"},
+      {"name": "Virgil's Rifle", "variant_of": "Institute Laser", "location": "Kill Virgil or steal it from Virgil's person in Virgil's Laboratory, using rank 3 of the Pickpocket perk", "effect_special": "50% more damage against super mutants"},
+      {"name": "Wazer Wifle", "variant_of": "Laser Rifle", "location": "Received from Shaun after completing three unmarked quests", "effect_special": "Unlimited ammo capacity (Not unlimited ammo)"}
+    ]
+  },
+  {
+    "category": "Heavy weapons",
+    "items": [
+      {"name": "Admiral's Friend", "variant_of": "Harpoon gun", "location": "Sold by Allen Lee in the town of Far Harbor", "effect_special": "Does double damage if target is at full health"},
+      {"name": "Aeternus", "variant_of": "Gatling laser", "location": "Dropped by the Rogue Knight during Amoral Combat", "effect_special": "Unlimited ammo capacity (due to how the Gatling laser works with the Neverending legendary modifier, this weapon has unlimited ammo instead of unlimited ammo capacity)"},
+      {"name": "Ashmaker", "variant_of": "Minigun", "location": "Potential reward for completing the quest The Big Dig", "effect_special": "Sets targets on fire for 15 points of damage"},
+      {"name": "Big Boy", "variant_of": "Fat Man", "location": "Sold by Arturo Rodriguez in the Diamond City Market", "effect_special": "Shoots an additional projectile"},
+      {"name": "Broadsider", "variant_of": "-", "location": "Reward for completing the quest Last Voyage of the U.S.S. Constitution", "effect_special": "No legendary effect"},
+      {"name": "Death From Above", "variant_of": "Missile Launcher", "location": "Sold by Proctor Teagan on the Prydwen after reaching the rank of Paladin in the Brotherhood of Steel", "effect_special": "75% increased movement speed while aiming down sights"},
+      {"name": "Defender's Harpoon Gun", "variant_of": "Harpoon gun", "location": "It can be obtained from The Mariner as a quest reward for completing Hull Breach 3", "effect_special": "Ignores 30% of target's damage and energy resistance"},
+      {"name": "Final Judgment", "variant_of": "Gatling laser", "location": "Carried by Elder Maxson; available during Airship Down or Precipice of War or Rockets' Red Glare", "effect_special": "25% faster fire rate, 15% faster reload"},
+      {"name": "Nuka-Nuke Launcher", "variant_of": "Fat Man", "location": "Reward for completing Cappy in a Haystack, if the power is switched off", "effect_special": "No legendary effect"},
+      {"name": "Partystarter", "variant_of": "Missile Launcher", "location": "Sold by KL-E-0 in Goodneighbor", "effect_special": "50% more damage against humans"},
+      {"name": "Sergeant Ash", "variant_of": "Flamer", "location": "Sold by Dejen in Acadia", "effect_special": "20% to cripple target's leg"},
+      {"name": "Skipper's Last Stand", "variant_of": "Harpoon gun", "location": "Reward for Completing Shipbreaker (quest)", "effect_special": "+150 damage resistance while reloading"},
+      {"name": "The Striker", "variant_of": "Fat Man", "location": "Found in Beaver Creek Lanes in Far Harbor (location)", "effect_special": "50% chance to cripple target's leg"}
+    ]
+  },
+  {
+    "category": "Melee weapons",
+    "items": [
+      {"name": "2076 World Series baseball bat", "variant_of": "Baseball Bat", "location": "Located in Jamaica Plain under the city hall, can be sold to Moe Cronin in Diamond city", "effect_special": "6% chance to send targets flying"},
+      {"name": "Atom's Judgement", "variant_of": "Super Sledge", "location": "Reward for completing The Heretic", "effect_special": "+100 radiation damage"},
+      {"name": "Big Jim", "variant_of": "Pipe Wrench", "location": "Found in the sewer tunnel beneath Walden Pond", "effect_special": "20% chance to cripple target's leg"},
+      {"name": "Bloodletter", "variant_of": "Pole Hook", "location": "Reward for completing Blood Tide", "effect_special": "Targets bleed for 25 points of damage"},
+      {"name": "Cito's Shiny Slugger", "variant_of": "Baseball Bat", "location": "Reward for completing Safari Adventure, if Cito and his family are allowed to leave/stay", "effect_special": "Refills action points on critical hit"},
+      {"name": "Fencebuster", "variant_of": "Baseball Bat", "location": "Found in Vault 118", "effect_special": "Ignores 30% of target's damage and energy resistance"},
+      {"name": "General Chao's Revenge", "variant_of": "Chinese Officer Sword", "location": "Sold by Trudy at the Drumlin Diner", "effect_special": "50% more damage to robots"},
+      {"name": "Grognak's Axe", "variant_of": "-", "location": "Inside Hubris Comics, in a locked display case (Advanced), behind the front desk", "effect_special": "No legendary effect"},
+      {"name": "Kremvh's Tooth", "variant_of": "Machete", "location": "Found underwater at the bottom of Dunwich Borers, on an altar in the side tunnel, near the bottom of the pool", "effect_special": "Poisons target for 3 points of damage"},
+      {"name": "Pickman's Blade", "variant_of": "Combat Knife", "location": "Located in the Pickman Gallery, reward for completing the quest Pickman's Gift", "effect_special": "Targets bleed for 25 points of damage"},
+      {"name": "Reckoning", "variant_of": "Ripper", "location": "Sold by a level 4 workshop merchant", "effect_special": "15% less damage while standing and not moving"},
+      {"name": "Rockville Slugger", "variant_of": "Swatter", "location": "Sold by Moe Cronin in the Diamond City Market", "effect_special": "40% less action point cost in VATS"},
+      {"name": "Shem Drowne Sword", "variant_of": "Revolutionary Sword", "location": "Reward for completing the quest The Gilded Grasshopper", "effect_special": "Targets are irradiated upon each hit"},
+      {"name": "Sword of Wonders", "variant_of": "Chinese Officer Sword", "location": "Reward for completing A Magical Kingdom", "effect_special": "Ignores 30% of targets damage and energy resistance"},
+      {"name": "The Fish Catcher", "variant_of": "Pole Hook", "location": "Sold by Allen Lee in the town of Far Harbor", "effect_special": "40% less action point cost in VATS"},
+      {"name": "The Harvester", "variant_of": "Ripper", "location": "Found in Echo Lake Lumber", "effect_special": "Chance to stagger on hit"},
+      {"name": "Throatslicer", "variant_of": "Disciples Blade", "location": "Sold by Katelyn Alden in the Nuka-Town market", "effect_special": "Targets bleed for 25 points of damage"},
+      {"name": "Zao's Sword", "variant_of": "Chinese Officer Sword", "location": "Earned as a reward from the quest Here There Be Monsters if successful in 3 persuasion checks", "effect_special": "No legendary effect"}
+    ]
+  },
+  {
+    "category": "Unarmed weapons",
+    "items": [
+      {"name": "Butcher's Hook", "variant_of": "Meat Hook", "location": "Sold by Erickson at Horizon Flight 1207", "effect_special": "Action points refill on critical hit"},
+      {"name": "Furious Power Fist", "variant_of": "Power Fist", "location": "Found on Swan at Swan's Pond", "effect_special": "Damage increased after each consecutive hit on the same target"}
+    ]
+  }
 ]
