@@ -1,0 +1,250 @@
+[
+  {
+    "category": "Perk magazines",
+    "items": [
+      {
+        "title": "Astoundingly Awesome Tales",
+        "issues": [
+          {"name": "Astoundingly Awesome Tales: My Brain and I...", "location": "Boston Mayoral Shelter", "effect": "Regenerate 1 point of health per minute"},
+          {"name": "Astoundingly Awesome Tales: The Starlet Sniper", "location": "Coast Guard Pier", "effect": "Do +5% damage with scoped weapons"},
+          {"name": "Astoundingly Awesome Tales: Attack of the Metal Men", "location": "Dunwich Borers", "effect": "Take 5% less damage from robots"},
+          {"name": "Astoundingly Awesome Tales: Invasion of the Zetans", "location": "Hubris Comics", "effect": "Do +5% damage with the Alien Blaster"},
+          {"name": "Astoundingly Awesome Tales: Attack Of The Fishmen", "location": "Skylanes Flight 1981", "effect": "Do +5% damage against Mirelurks"},
+          {"name": "Astoundingly Awesome Tales: Deep Sea Terror!", "location": "Outpost Zimonja", "effect": "Do +5% damage at night"},
+          {"name": "Astoundingly Awesome Tales: The Man Who Could Stop Time", "location": "Vault 114", "effect": "Gain +5 Action Points"},
+          {"name": "Astoundingly Awesome Tales: When Apes Go Bananas!!!", "location": "Railroad HQ", "effect": "Do +5% damage with the Cryolator"},
+          {"name": "Astoundingly Awesome Tales: Giant Insects Invade", "location": "Sentinel Site", "effect": "Gain +5 Radiation Resistance"},
+          {"name": "Astoundingly Awesome Tales: The Mad Russian's Revenge", "location": "Pickman Gallery", "effect": "Gain +5 Poison Resistance"},
+          {"name": "Astoundingly Awesome Tales: Rise of the Radiated", "location": "East Boston Preparatory School", "effect": "RadAway heals +5% radiation damage"},
+          {"name": "Astoundingly Awesome Tales: Have Dog, Will Travel!", "location": "The Institute", "effect": "Your canine companion permanently takes 10% less damage"},
+          {"name": "Astoundingly Awesome Tales: Curse of the Burned!", "location": "Crater of Atom", "effect": "Do +5% damage against Ghouls"},
+          {"name": "Astoundingly Awesome Tales: Rise of the Mutants!", "location": "Trinity Church", "effect": "Do +5% damage against Super Mutants"}
+        ]
+      },
+      {
+        "title": "Grognak the Barbarian",
+        "issues": [
+          {"name": "Grognak the Barbarian: Blood on the Harp", "location": "Wicked Shipping Fleet Lockup", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: Cometh the Trickster", "location": "Bus and Apartment Wreckage", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: Jungle of the Bat-Babies", "location": "Sanctuary Hills", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: In the Bosom of the Corsair Queen", "location": "Corvega Assembly Plant", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: Demon Slaves, Demon Sands", "location": "Vault 75/Vault 81", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: Enter Maula: War Maiden of Mars", "location": "Boston Common Swan's Pond", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: Fatherless Cur!", "location": "Mass Pike Interchange", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: Lost in the Snows of Lust!", "location": "Back Street Apparel", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: In the Lair of the Virgin Eater", "location": "Hyde Park", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"},
+          {"name": "Grognak the Barbarian: What Sorcery This?", "location": "Museum of Witchcraft", "effect": "Critical Hits with unarmed and melee attacks do +5% damage"}
+        ]
+      },
+      {
+        "title": "Guns and Bullets",
+        "issues": [
+          {"name": "Guns & Bullets: The Future of Hunting?", "location": "BADTFL Regional Office", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Lasers & Hunting", "location": "Fort Hagen", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Little Guns For Little Ladies", "location": "Fraternal Post 115", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Street Guns of Detroit", "location": "Gunners Plaza", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Avoid those Pesky Gun Laws!", "location": "Rook Family House", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: The Moon: A Communist Doomsday Device?", "location": "Quincy Ruins", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Take Aim, Army Style", "location": "South Boston Military Checkpoint", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Bear Proofing Your Campsite", "location": "Cambridge Police Station", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Plasma - The Weapon of Tomorrow", "location": "The Castle", "effect": "Ballistic weapons do +5% critical damage"},
+          {"name": "Guns & Bullets: Guide to Hunting Commies!", "location": "Ticonderoga Safehouse", "effect": "Ballistic weapons do +5% critical damage"}
+        ]
+      },
+      {
+        "title": "Live & Love",
+        "issues": [
+          {"name": "Live & Love: Life Long Best Friends!", "location": "Faneuil Hall", "effect": "Companions permanently gain +10 health"},
+          {"name": "Live & Love: Nuke-The-Man!", "location": "College Square Station", "effect": "Companions permanently inflict +5% damage"},
+          {"name": "Live & Love: Advice From Married Men", "location": "The Third Rail", "effect": "Companions permanently gain +5 Damage Resistance and Energy Resistance"},
+          {"name": "Live & Love: Beware The Man Handler", "location": "Bunker Hill", "effect": "Permanently gain +25% XP from persuading men"},
+          {"name": "Live & Love: An Experience to Remember", "location": "Hotel Rexford", "effect": "Permanently gain +5% XP while adventuring with a companion"},
+          {"name": "Live & Love: I Married a Robot!", "location": "Diamond City schoolhouse", "effect": "Robot companions permanently inflict +5% damage"},
+          {"name": "Live & Love: Trim the Fat", "location": "WRVR Broadcast Station", "effect": "Companions permanently gain +10 carry weight"},
+          {"name": "Live & Love: The Secretary Charmer", "location": "Fiddler's Green Trailer Estates", "effect": "Permanently gain +25% XP from persuading women"},
+          {"name": "Live & Love: Talk Yourself Sober", "location": "Revere Beach Station", "effect": "Permanently gain +1 Luck from alcohol when adventuring with a companion"}
+        ]
+      },
+      {
+        "title": "Massachusetts Surgical Journal",
+        "issues": [
+          {"name": "Massachusetts Surgical Journal: Better Living Through Chems", "location": "Cabot House", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Let's Play Doctor!", "location": "Parsons State Insane Asylum", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Happy Sedation Special", "location": "Sandy Coves Convalescent Home", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Cryo-Technology: Haven or Tomb?", "location": "Greater Mass Blood Clinic", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Raised by Robots", "location": "Med-Tek Research", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Pay Now, Get Better Later!!", "location": "Greenetech Genetics", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Finding Your Funny Bone", "location": "Boston Public Library", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: Scars Are Cool!", "location": "Cambridge Polymer Labs", "effect": "Permanently inflict +2% limb damage"},
+          {"name": "Massachusetts Surgical Journal: ER Nurses Confess All", "location": "Medford Memorial Hospital", "effect": "Permanently inflict +2% limb damage"}
+        ]
+      },
+      {
+        "title": "Tales of a Junktown Jerky Vendor",
+        "issues": [
+          {"name": "Tales of a Junktown Jerky Vendor: How to Run a Successful Vendor Stand", "location": "Big John's Salvage", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: Capitalism & You", "location": "Four Leaf Fishpacking Plant", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: The Art of Haggling", "location": "Super-Duper Mart", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: Benefits of Child Labor", "location": "Longneck Lukowski's Cannery", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: Take Your Business on the Road", "location": "Mystic Pines", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: The Joy of Wealth", "location": "Gwinnett Brewery", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: Why I Sold My Mother", "location": "Walden Pond", "effect": "Decreases prices when bartering with vendors"},
+          {"name": "Tales of a Junktown Jerky Vendor: Suit Up & Succeed", "location": "Wreck of the FMS Northern Star", "effect": "Decreases prices when bartering with vendors"}
+        ]
+      },
+      {
+        "title": "Tesla Science Magazine",
+        "issues": [
+          {"name": "Tesla Science: Will Robots Rule the World?", "location": "ArcJet Systems", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: What is Plasma, Anyway?", "location": "General Atomics Factory", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: Rocket Science for Toddlers", "location": "Rocky Cave", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: Tomorrow's Technology for Today's Super Soldiers", "location": "Mahkra Fishpacking", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: Giant Super Weapons!", "location": "Mass Fusion Building", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: Geckos and Gamma Radiation – The Key to Prolonged Life?", "location": "Sedgwick Hall", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: US Army Goes To Space", "location": "HalluciGen, Inc.", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: Rock-o-Bot Takes the Nation by Storm!!", "location": "Poseidon Energy", "effect": "Energy weapons inflict +5% critical damage"},
+          {"name": "Tesla Science: Future of Warfare?", "location": "Reeb Marina", "effect": "Energy weapons inflict +5% critical damage"}
+        ]
+      },
+      {
+        "title": "Tumblers Today",
+        "issues": [
+          {"name": "Tumblers Today: Bobby Pins – More Effective Than Lockpicks?", "location": "Easy City Downs", "effect": "Bonus to Lockpicking"},
+          {"name": "Tumblers Today: Confessions of a Housebreaker", "location": "Fens Street Sewer", "effect": "Bonus to Lockpicking"},
+          {"name": "Tumblers Today: Open Any Lock in 5 Seconds Flat", "location": "West Roxbury Station", "effect": "Bonus to Lockpicking"},
+          {"name": "Tumblers Today: Locksmith Certification Special – Pass With Flying Colors", "location": "Malden Center", "effect": "Bonus to Lockpicking"},
+          {"name": "Tumblers Today: Mysteries of the Master Key Exposed!", "location": "Poseiden Energy Turbine 18-F", "effect": "Bonus to Lockpicking"}
+        ]
+      },
+      {
+        "title": "U.S. Covert Operations Manual",
+        "issues": [
+          {"name": "U.S. Covert Operations Manual: Whistling in the Dark", "location": "The Switchboard", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Urban Camouflage", "location": "USS Constitution", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Facepaint Fundamentals", "location": "Federal Ration Stockpile", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Not the Soldiers You're Looking For", "location": "Federal Surveillance Center K-21B", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Who Goes There?", "location": "Fort Strong", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Squeaky Floorboard, Sudden Death", "location": "Fort Hagen Command Center", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Getting the Drop on Communists", "location": "National Guard Training Yard", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Bushes, Boxes, and Beehives Camouflage Special", "location": "Libertalia", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Look Better in Black", "location": "Revere Satellite Array", "effect": "You are more difficult to detect while sneaking"},
+          {"name": "U.S. Covert Operations Manual: Tiptoe Through the Tulips", "location": "USAF Satellite Station Olivia", "effect": "You are more difficult to detect while sneaking"}
+        ]
+      },
+      {
+        "title": "Unstoppables",
+        "issues": [
+          {"name": "Unstoppables: Dr. Brainwash and His Army of De-Capitalists!", "location": "Shaw High School", "effect": "Ranks up the Unstoppable perk"},
+          {"name": "Unstoppables: Who Can Stop The Unstoppable Grog-Na-Rok?!", "location": "D.B. Technical High School", "effect": "Ranks up the Unstoppable perk"},
+          {"name": "Unstoppables: Commie-Kazi vs. Manta Man", "location": "Westing Estate", "effect": "Ranks up the Unstoppable perk"},
+          {"name": "Unstoppables: Trapped In The Dimension Of The Pterror-Dactyls!", "location": "Suffolk County Charter School", "effect": "Ranks up the Unstoppable perk"},
+          {"name": "Unstoppables: Visit the Ux-Ron Galaxy!!", "location": "Hubris Comics", "effect": "Ranks up the Unstoppable perk"}
+        ]
+      },
+      {
+        "title": "Wasteland Survival Guide",
+        "issues": [
+          {"name": "Wasteland Survival Guide: Farming The Wastes", "location": "Wreck of the USS Riptide", "effect": "Heal +50% more from fruits and vegetables"},
+          {"name": "Wasteland Survival Guide: Insect Repellent Special", "location": "Crater House", "effect": "Permanently take 5% less damage from insects"},
+          {"name": "Wasteland Survival Guide: The Bright Side of Radiation Poisoning", "location": "Egret Tours Marina", "effect": "Permanently heal +50% from irradiated packaged food and drink"},
+          {"name": "Wasteland Survival Guide: The Scrapyard Home Decoration Guide", "location": "Lynn Woods", "effect": "Permanently unlock new decoration (two lawn flamingos) in workshop settlements"},
+          {"name": "Wasteland Survival Guide: Guide To Diamond City", "location": "Gorski Cabin", "effect": "Diamond City is now permanently marked on your map"},
+          {"name": "Wasteland Survival Guide: Commonwealth Coupon Spectacular", "location": "Nahant Oceanological Society", "effect": "Permanently gain +10% discount from food and drink vendors"},
+          {"name": "Wasteland Survival Guide: Water Aerobics for Ghouls", "location": "Old Gullet Sinkhole", "effect": "Permanently swim 25% faster"},
+          {"name": "Wasteland Survival Guide: Self-Defense Secrets", "location": "Ranger Cabin", "effect": "Permanently take 5% less damage from melee attacks"},
+          {"name": "Wasteland Survival Guide: Hunting in the Wastes", "location": "Sunshine Tidings Co-op", "effect": "Permanently collect more meat from animal kills"}
+        ]
+      },
+      {
+        "title": "Islander's Almanac",
+        "issues": [
+          {"name": "Islander's Almanac: Pincer Dodge", "location": "Northwood Ridge Quarry", "effect": "Take 5% less damage from Mirelurk melee attacks"},
+          {"name": "Islander's Almanac: Precision Hunting", "location": "Brooke's Head Lighthouse", "effect": "5% higher VATS chance against animals the player is in combat with"},
+          {"name": "Islander's Almanac: Far Harbor Sightseer's Guide", "location": "The Last Plank", "effect": "Marks multiple locations on the map"},
+          {"name": "Islander's Almanac: Children of Atom Expose", "location": "Acadia", "effect": "Receive 10% less damage from radiation-based attacks"},
+          {"name": "Islander's Almanac: Recipe Roundup", "location": "National Park Visitor's Center", "effect": "Unlocks sludge based recipes at chemistry stations"}
+        ]
+      },
+      {
+        "title": "SCAV!",
+        "issues": [
+          {"name": "SCAV: The Terrible Truce", "location": "Galactic Zone", "effect": "Increases speech challenge success chance by 10%"},
+          {"name": "SCAV: Fear the Knife King", "location": "Nuka-World Junkyard", "effect": "Increase 25% Combat Knife and Switchblade damage"},
+          {"name": "SCAV: Mutant Fists of Stephie Knuckles", "location": "Kiddie Kingdom Fun House", "effect": "Increases 10% hand to hand weapon damage"},
+          {"name": "SCAV: Nuka Brahmin Stampede", "location": "Grandchester Mystery Mansion", "effect": "Increases 5% explosives damage"},
+          {"name": "SCAV: That No-Caps Rage", "location": "Dry Rock Gulch Employee Area", "effect": "+1-3 Strength & Endurance based on caps"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Miscellaneous magazines",
+    "items": [
+      {
+        "title": "Hot Rodder",
+        "issues": [
+          {"name": "Hot Rodder: Shark Paint Schemes!", "location": "Atom Cats Garage", "effect": "Shark Paint"},
+          {"name": "Hot Rodder: Hot Pink!", "location": "Milton Parking Garage", "effect": "Hot Pink Paint"},
+          {"name": "Hot Rodder: Racing Stripes!", "location": "Schoelt Propane Store", "effect": "Racing Stripes Paint"},
+          {"name": "Hot Rodder: Flame Job!", "location": "Robotics Disposal Ground", "effect": "Hot Rod Flames Paint"}
+        ]
+      },
+      {
+        "title": "La Coiffe",
+        "issues": [
+          {"name": "La Coiffe: Megaton Hair", "location": "Fallon's Department Store", "effect": "Unlocks additional hairstyles - Megaton Hair"},
+          {"name": "La Coiffe: The Hornet's Nest", "location": "Charlestown Laundry", "effect": "Unlocks additional hairstyles - Hornet's Nest (Female)/Anchorage (Male)"}
+        ]
+      },
+      {
+        "title": "Picket Fences",
+        "issues": [
+          {"name": "Picket Fences: The House of Tomorrow...Today!", "location": "Beantown Brewery", "effect": "You are now able to build picket fencing at settlement workshops"},
+          {"name": "Picket Fences: Modern Hearth!", "location": "Hardware Town", "effect": "You are now able to build high tech lights at settlement workshops"},
+          {"name": "Picket Fences: Essential Upgrades!", "location": "Saugus Ironworks", "effect": "You are now able to build new statues at settlement workshops"},
+          {"name": "Picket Fences: Modern Lawn Care!", "location": "Combat Zone", "effect": "You are now able to build potted plants at settlement workshops"},
+          {"name": "Picket Fences: Welcome Home!", "location": "Weston Water Treatment Plant", "effect": "You are now able to build patio furniture at settlement workshops"}
+        ]
+      },
+      {
+        "title": "RobCo Fun",
+        "issues": [
+          {"name": "RobCo Fun: Atomic Command", "location": "Museum of Freedom", "effect": "Adds Atomic Command to the player's inventory"},
+          {"name": "RobCo Fun: Grognak & the Ruby Ruins", "location": "Goodneighbor", "effect": "Adds Grognak & The Ruby Ruins to the player's inventory"},
+          {"name": "RobCo Fun: Pipfall", "location": "Fort Hagen", "effect": "Adds Pipfall to the player's inventory"},
+          {"name": "RobCo Fun: Zeta Invaders", "location": "Valentine Detective Agency", "effect": "Adds Zeta Invaders to the player's inventory"}
+        ]
+      },
+      {
+        "title": "Taboo Tattoos",
+        "issues": [
+          {"name": "Taboo Tattoos: 13", "location": "Mass Pike Tunnel", "effect": "Four-leaf clover with wishbone and '13' below it on the right cheek"},
+          {"name": "Taboo Tattoos: Anchor", "location": "Thicket Excavations", "effect": "Anchor and stars on the forehead"},
+          {"name": "Taboo Tattoos: Eagle's Nest", "location": "Concord Civic Access", "effect": "Cartoon eagle on throat"},
+          {"name": "Taboo Tattoos: Skulls Are Hip!!", "location": "Irish Pride Industries Shipyard", "effect": "Radioactive skull on one's forehead"},
+          {"name": "Taboo Tattoos: Sailor", "location": "Vault 81", "effect": "Upside-down horseshoe, 'bad luck' on the forehead"}
+        ]
+      },
+      {
+        "title": "Total Hack",
+        "issues": [
+          {"name": "Total Hack: Control Robots", "location": "Wattz Consumer Electronics", "effect": "Adds Protectron Override Program to the player's inventory"},
+          {"name": "Total Hack: Control Spotlights", "location": "The Shamrock Taphouse", "effect": "Adds Spotlight Override Program to the player's inventory"},
+          {"name": "Total Hack: Control Turrets", "location": "Wildwood Cemetery", "effect": "Adds Turret Override Program to the player's inventory"}
+        ]
+      },
+      {
+        "title": "You're SPECIAL!",
+        "issues": [
+          {"name": "You're SPECIAL!", "location": "Shaun's room in Pre-War Sanctuary", "effect": "Gain one SPECIAL point of choice"}
+        ]
+      },
+      {
+        "title": "Creation Club",
+        "issues": [
+          {"name": "Slocum's Joe Franchise Kit", "location": "Slocum's Joe Corporate HQ", "effect": "Permanently unlocks Slocum's Joe Donuts & Coffee Workshop items"}
+        ]
+      }
+    ]
+  }
+]
