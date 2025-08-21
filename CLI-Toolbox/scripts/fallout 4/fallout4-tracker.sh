@@ -2,20 +2,37 @@
 
 # Fallout 4 - Tracker for games and 100%
 # CLI Implementation
+# Compatible with Bash 3.0+ on Linux, macOS, Windows (WSL/Cygwin/MSYS2), and BSD systems
 
-# Color codes for better UI
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-WHITE='\033[1;37m'
-GRAY='\033[0;90m'
-NC='\033[0m' # No Color
+# Exit on undefined variables and errors
+set -u
 
-# Get script directory
-SCRIPT_DIR="/home/kcollins/projects/Gaming-CLI /CLI-Toolbox/scripts/fallout 4"
+# Color codes for better UI - with terminal capability detection
+if [ -t 1 ] && [ -n "${TERM}" ] && [ "${TERM}" != "dumb" ]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    MAGENTA='\033[0;35m'
+    CYAN='\033[0;36m'
+    WHITE='\033[1;37m'
+    GRAY='\033[0;90m'
+    NC='\033[0m' # No Color
+else
+    # Disable colors for non-interactive or unsupported terminals
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    MAGENTA=''
+    CYAN=''
+    WHITE=''
+    GRAY=''
+    NC=''
+fi
+
+# Get script directory - portable way
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Data directories
 DATA_DIR="$HOME/.fallout4_tracker"
@@ -23,7 +40,7 @@ CHARACTERS_FILE="$DATA_DIR/characters.json"
 CURRENT_CHAR_FILE="$DATA_DIR/current_character.txt"
 
 # Reference data from script's data folder
-REFERENCE_DATA_DIR="/home/kcollins/projects/Gaming-CLI /CLI-Toolbox/scripts/fallout 4/data"
+REFERENCE_DATA_DIR="$SCRIPT_DIR/data"
 BOBBLEHEADS_FILE="$REFERENCE_DATA_DIR/bobbleheads.json"
 MAGAZINES_FILE="$REFERENCE_DATA_DIR/magazines.json"
 HOLOTAPES_FILE="$REFERENCE_DATA_DIR/holotapes.json"
@@ -33,9 +50,18 @@ PERKS_FILE="$REFERENCE_DATA_DIR/perks.json"
 
 # Initialize data directory
 init_data() {
-    mkdir -p "$DATA_DIR"
+    if ! mkdir -p "$DATA_DIR" 2>/dev/null; then
+        echo -e "${RED}Error: Cannot create data directory at $DATA_DIR${NC}"
+        echo -e "${YELLOW}Please check permissions or disk space.${NC}"
+        exit 1
+    fi
+    
     if [ ! -f "$CHARACTERS_FILE" ]; then
-        echo "[]" > "$CHARACTERS_FILE"
+        if ! echo "[]" > "$CHARACTERS_FILE" 2>/dev/null; then
+            echo -e "${RED}Error: Cannot create characters file at $CHARACTERS_FILE${NC}"
+            echo -e "${YELLOW}Please check permissions.${NC}"
+            exit 1
+        fi
     fi
     
     # Check if reference data exists
@@ -51,7 +77,11 @@ init_data() {
 
 # Create sample data files if they don't exist
 create_sample_data() {
-    mkdir -p "$REFERENCE_DATA_DIR"
+    if ! mkdir -p "$REFERENCE_DATA_DIR" 2>/dev/null; then
+        echo -e "${RED}Error: Cannot create reference data directory at $REFERENCE_DATA_DIR${NC}"
+        echo -e "${YELLOW}Please check permissions.${NC}"
+        exit 1
+    fi
     
     # Skip bobbleheads and magazines - using existing detailed JSON files
     
@@ -250,6 +280,60 @@ show_header() {
     echo
 }
 
+# Helper function to check mod compatibility based on platform and game type
+check_mod_compatibility() {
+    local char_id="$1"
+    local action_type="$2"  # "warn" or "block"
+    
+    if [ ! -f "$CHARACTERS_FILE" ]; then
+        return 1
+    fi
+    
+    local char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    if [ -z "$char_data" ]; then
+        return 1
+    fi
+    
+    local game_type=$(echo "$char_data" | jq -r '.game_type // "Main"')
+    local platform_type=$(echo "$char_data" | jq -r '.platform.type // "PC"')
+    local mod_support=$(echo "$char_data" | jq -r '.platform.mod_support // "Full"')
+    
+    # Only check if modded content is being accessed
+    if [[ "$game_type" == *"Modded"* ]]; then
+        case "$mod_support" in
+            "Full")
+                if [[ "$action_type" == "warn" ]]; then
+                    echo -e "${GREEN}✓ Full mod support available on PC platform${NC}"
+                fi
+                return 0
+                ;;
+            "Limited")
+                if [[ "$action_type" == "warn" ]]; then
+                    if [[ "$platform_type" == "Console" ]]; then
+                        local console_gen=$(echo "$char_data" | jq -r '.platform.generation // "Old Gen"')
+                        if [[ "$console_gen" == "New Gen" ]]; then
+                            echo -e "${YELLOW}⚠ Limited mod support on console. Some mods may not be available.${NC}"
+                        else
+                            echo -e "${YELLOW}⚠ Very limited mod support on old gen consoles.${NC}"
+                        fi
+                    fi
+                    echo -e "${YELLOW}Note: Using modded content. Quest items may affect inventory.${NC}"
+                fi
+                return 0
+                ;;
+            *)
+                if [[ "$action_type" == "block" ]]; then
+                    echo -e "${RED}❌ Modded content not supported on this platform${NC}"
+                    return 1
+                fi
+                return 0
+                ;;
+        esac
+    fi
+    
+    return 0
+}
+
 # Main menu
 main_menu() {
     show_header
@@ -413,11 +497,62 @@ create_character() {
         *) game_type="Main" ;;
     esac
     
+    echo
+    echo "Platform:"
+    echo "1. PC (Steam)"
+    echo "2. PC (GOG)"
+    echo "3. Console (Old Gen - PS4/Xbox One)"
+    echo "4. Console (New Gen - PS5/Xbox Series X|S)"
+    read -p "Select platform (1-4): " platform_choice
+    
+    case $platform_choice in
+        1) platform="PC"; distribution="Steam" ;;
+        2) platform="PC"; distribution="GOG" ;;
+        3) platform="Console"; console_gen="Old Gen"; console_type="PS4/Xbox One" ;;
+        4) platform="Console"; console_gen="New Gen"; console_type="PS5/Xbox Series X|S" ;;
+        *) platform="PC"; distribution="Steam" ;;
+    esac
+    
+    # Set mod compatibility based on platform
+    if [[ "$platform" == "PC" ]]; then
+        mod_support="Full"
+        if [[ "$game_type" == *"Modded"* ]]; then
+            echo -e "${GREEN}✓ Full mod support available on PC platform${NC}"
+        fi
+    elif [[ "$platform" == "Console" && "$console_gen" == "New Gen" ]]; then
+        mod_support="Limited"
+        if [[ "$game_type" == *"Modded"* ]]; then
+            echo -e "${YELLOW}⚠ Limited mod support on console. Some mods may not be available.${NC}"
+            echo -e "${YELLOW}Note: Using modded content. Quest items may affect inventory.${NC}"
+        fi
+    else
+        mod_support="Limited"
+        if [[ "$game_type" == *"Modded"* ]]; then
+            echo -e "${YELLOW}⚠ Very limited mod support on old gen consoles.${NC}"
+            echo -e "${YELLOW}Note: Using modded content. Quest items may affect inventory.${NC}"
+        fi
+    fi
+    
     if [[ "$game_type" == *"Modded"* ]]; then
-        echo -e "${YELLOW}Note: Using modded content. Quest items may affect inventory.${NC}"
         sleep 2
     fi
     
+    # Build platform JSON based on platform type
+    if [[ "$platform" == "PC" ]]; then
+        platform_json="\"platform\": {
+        \"type\": \"$platform\",
+        \"distribution\": \"$distribution\",
+        \"mod_support\": \"$mod_support\"
+    },"
+    else
+        platform_json="\"platform\": {
+        \"type\": \"$platform\",
+        \"generation\": \"$console_gen\",
+        \"console_type\": \"$console_type\",
+        \"mod_support\": \"$mod_support\"
+    },"
+    fi
+
     char_json=$(cat <<EOF
 {
     "id": "$char_id",
@@ -426,6 +561,7 @@ create_character() {
     "level": $level,
     "faction": "$faction",
     "game_type": "$game_type",
+    $platform_json
     "special": {
         "strength": $strength,
         "perception": $perception,
@@ -473,7 +609,7 @@ select_character() {
     
     # List all characters
     if [ -f "$CHARACTERS_FILE" ]; then
-        characters=$(jq -r '.[] | "\(.id)|\(.name)|\(.level)|\(.faction // "None")|\(.game_type // "Main")"' "$CHARACTERS_FILE")
+        characters=$(jq -r '.[] | "\(.id)|\(.name)|\(.level)|\(.faction // "None")|\(.game_type // "Main")|\(.platform.type // "PC")|\(.platform.distribution // .platform.console_type // "Steam")"' "$CHARACTERS_FILE")
         
         if [ -z "$characters" ]; then
             echo -e "${RED}No characters found. Create one first!${NC}"
@@ -482,18 +618,25 @@ select_character() {
             return
         fi
         
-        echo -e "${WHITE}   Name                Level    Faction              Game Type${NC}"
-        echo -e "${YELLOW}───────────────────────────────────────────────────────────────${NC}"
+        echo -e "${WHITE}   Name                Level    Faction              Game Type       Platform${NC}"
+        echo -e "${YELLOW}─────────────────────────────────────────────────────────────────────────────${NC}"
         
         counter=1
-        while IFS='|' read -r id name level faction game_type; do
+        while IFS='|' read -r id name level faction game_type platform_type platform_detail; do
+            # Format platform display
+            if [[ "$platform_type" == "PC" ]]; then
+                platform_display="PC ($platform_detail)"
+            else
+                platform_display="$platform_type ($platform_detail)"
+            fi
+            
             # Format the output with proper spacing
-            printf "${CYAN}%2d.${NC} %-18s ${GREEN}Lvl %-4s${NC} %-18s ${MAGENTA}%s${NC}\n" \
-                "$counter" "$name" "$level" "$faction" "$game_type"
+            printf "${CYAN}%2d.${NC} %-18s ${GREEN}Lvl %-4s${NC} %-18s ${MAGENTA}%-14s${NC} ${BLUE}%s${NC}\n" \
+                "$counter" "$name" "$level" "$faction" "$game_type" "$platform_display"
             counter=$((counter + 1))
         done <<< "$characters"
         
-        echo -e "${YELLOW}───────────────────────────────────────────────────────────────${NC}"
+        echo -e "${YELLOW}─────────────────────────────────────────────────────────────────────────────${NC}"
         echo
         read -p "Select character number (or 0 to go back): " char_num
         
@@ -543,8 +686,19 @@ character_menu() {
     game_type=$(echo "$char_data" | jq -r '.game_type // "Main"')
     faction=$(echo "$char_data" | jq -r '.faction // "None"')
     
+    # Get platform information
+    platform_type=$(echo "$char_data" | jq -r '.platform.type // "PC"')
+    if [[ "$platform_type" == "PC" ]]; then
+        distribution=$(echo "$char_data" | jq -r '.platform.distribution // "Steam"')
+        platform_display="$platform_type ($distribution)"
+    else
+        console_type=$(echo "$char_data" | jq -r '.platform.console_type // "PS4/Xbox One"')
+        platform_display="$platform_type ($console_type)"
+    fi
+    
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}Character: $char_name${NC} | ${CYAN}Level $char_level${NC} | ${MAGENTA}$game_type${NC} | ${YELLOW}$faction${NC}"
+    echo -e "${GREEN}Character: $char_name${NC} | ${CYAN}Level $char_level${NC} | ${MAGENTA}$game_type${NC}"
+    echo -e "${YELLOW}Platform: $platform_display${NC} | ${YELLOW}Faction: $faction${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     echo "1. 📊 Character Stats & Level"
@@ -662,24 +816,50 @@ collectibles_menu() {
     show_header
     char_id=$(cat "$CURRENT_CHAR_FILE")
     
+    # Get character data and game type
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    game_type=$(echo "$char_data" | jq -r '.game_type // "Main"')
+    
     echo -e "${CYAN}🎒 Collectibles & Items${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
     # Quick stats
-    collectibles=$(jq -r ".[] | select(.id == \"$char_id\") | .collectibles" "$CHARACTERS_FILE")
+    collectibles=$(echo "$char_data" | jq -r '.collectibles')
     bobblehead_count=$(echo "$collectibles" | jq '.bobbleheads | length')
     magazine_count=$(echo "$collectibles" | jq '.magazines | length')
     
     echo -e "${GREEN}Quick Stats:${NC}"
     echo "  Bobbleheads: $bobblehead_count/20"
     echo "  Magazines: $magazine_count/133"
+    
+    # Add modded-only quick stats
+    if [[ "$game_type" == "Main+DLC+Modded" ]]; then
+        holotape_count=$(echo "$collectibles" | jq '.holotapes | length')
+        note_count=$(echo "$collectibles" | jq '.notes | length')
+        unique_count=$(echo "$collectibles" | jq '.unique_items | length')
+        echo
+        echo -e "${PURPLE}Quick Stats - Modded Only${NC}"
+        echo "  Holotapes: $holotape_count (Use custom entries for mod items)"
+        echo "  Notes: $note_count (Use custom entries for mod items)"
+        echo "  Unique Items: $unique_count (Use custom entries for mod items)"
+    fi
+    
     echo
     echo "1. 📊 Add Bobblehead"
     echo "2. 📖 Add Magazine"
-    echo "3. 💾 Add Holotape"
-    echo "4. 📝 Add Note"
-    echo "5. ⭐ Add Unique Item"
+    
+    # Show different options for modded vs non-modded
+    if [[ "$game_type" == "Main+DLC+Modded" ]]; then
+        echo "3. 💾 Add Holotape (Use custom entries for mod items)"
+        echo "4. 📝 Add Note (Use custom entries for mod items)"
+        echo "5. ⭐ Add Unique Item (Use custom entries for mod items)"
+    else
+        echo "3. 💾 Add Holotape"
+        echo "4. 📝 Add Note"
+        echo "5. ⭐ Add Unique Item"
+    fi
+    
     echo "6. 📋 View All Collectibles"
     echo "7. 🔍 Search Collectibles"
     echo "8. 🗑️ Remove Collectible"
@@ -690,9 +870,27 @@ collectibles_menu() {
     case $choice in
         1) add_specific_collectible "bobbleheads" "$BOBBLEHEADS_FILE" "Bobblehead" ;;
         2) add_magazine_by_category ;;
-        3) add_specific_collectible "holotapes" "$HOLOTAPES_FILE" "Holotape" ;;
-        4) add_specific_collectible "notes" "$NOTES_FILE" "Note" ;;
-        5) add_specific_collectible "unique_items" "$UNIQUE_ITEMS_FILE" "Unique Item" ;;
+        3) 
+            if [[ "$game_type" == "Main+DLC+Modded" ]]; then
+                add_modded_collectible "holotapes" "Holotape"
+            else
+                add_specific_collectible "holotapes" "$HOLOTAPES_FILE" "Holotape"
+            fi
+            ;;
+        4) 
+            if [[ "$game_type" == "Main+DLC+Modded" ]]; then
+                add_modded_collectible "notes" "Note"
+            else
+                add_specific_collectible "notes" "$NOTES_FILE" "Note"
+            fi
+            ;;
+        5) 
+            if [[ "$game_type" == "Main+DLC+Modded" ]]; then
+                add_modded_collectible "unique_items" "Unique Item"
+            else
+                add_specific_collectible "unique_items" "$UNIQUE_ITEMS_FILE" "Unique Item"
+            fi
+            ;;
         6) view_all_collectibles ;;
         7) search_collectibles ;;
         8) remove_collectible_menu ;;
@@ -1079,6 +1277,853 @@ add_magazine_by_category() {
     collectibles_menu
 }
 
+# Add modded collectible (for mod-specific items)
+add_modded_collectible() {
+    local coll_type=$1
+    local type_name=$2
+    
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}💾 Add $type_name (Modded)${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    # Ask which mod this collectible is for
+    echo -e "${PURPLE}What mod is this $type_name for?${NC}"
+    read -p "Mod Name: " mod_name
+    
+    if [ -z "$mod_name" ]; then
+        echo -e "${RED}Error: Mod name is required${NC}"
+        sleep 2
+        collectibles_menu
+        return
+    fi
+    
+    echo
+    read -p "Enter $type_name name: " item_name
+    
+    if [ -z "$item_name" ]; then
+        echo -e "${RED}Error: $type_name name is required${NC}"
+        sleep 2
+        collectibles_menu
+        return
+    fi
+    
+    # Create the item entry with mod information
+    item_entry="$item_name ($mod_name)"
+    
+    # Add the item to character's collection
+    jq "map(if .id == \"$char_id\" then .collectibles.$coll_type += [\"$item_entry\"] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+    
+    echo -e "${GREEN}✓ $type_name added: $item_entry${NC}"
+    sleep 2
+    collectibles_menu
+}
+
+# Existing Modded Quest Menu
+existing_modded_quest_menu() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    char_data=$(jq -r ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    
+    echo -e "${CYAN}📦 Existing Modded Quest${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    # Get modded quests
+    modded_quests=$(echo "$char_data" | jq -r '.quests.modded[]?')
+    
+    if [ -z "$modded_quests" ]; then
+        echo -e "${YELLOW}No modded quests found. Create a new modded quest first.${NC}"
+        echo
+        read -p "Press Enter to continue..."
+        collectibles_menu
+        return
+    fi
+    
+    echo -e "${GREEN}Select a modded quest:${NC}"
+    echo
+    
+    # List existing modded quests
+    quest_array=()
+    counter=1
+    
+    while IFS= read -r quest_json; do
+        if [ ! -z "$quest_json" ]; then
+            quest_name=$(echo "$quest_json" | jq -r '.quest_name // .name')
+            mod_name=$(echo "$quest_json" | jq -r '.mod_name // "Unknown"')
+            status=$(echo "$quest_json" | jq -r '.status // "active"')
+            
+            if [ "$status" = "completed" ]; then
+                echo -e "${GREEN}$counter. ✓ $quest_name - $mod_name (Completed)${NC}"
+            else
+                echo -e "${WHITE}$counter. $quest_name - $mod_name${NC}"
+            fi
+            
+            quest_array+=("$quest_json")
+            counter=$((counter + 1))
+        fi
+    done <<< "$modded_quests"
+    
+    echo
+    echo "0. Back"
+    echo
+    read -p "Select quest (0-$((counter-1))): " quest_choice
+    
+    if [ "$quest_choice" = "0" ]; then
+        collectibles_menu
+        return
+    fi
+    
+    if [ "$quest_choice" -ge 1 ] && [ "$quest_choice" -lt "$counter" ]; then
+        selected_quest="${quest_array[$((quest_choice-1))]}"
+        manage_existing_modded_quest "$selected_quest"
+    else
+        echo -e "${RED}Invalid selection${NC}"
+        sleep 1
+        existing_modded_quest_menu
+    fi
+}
+
+# Manage a specific existing modded quest
+manage_existing_modded_quest() {
+    local quest_data=$1
+    
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    quest_name=$(echo "$quest_data" | jq -r '.quest_name // .name')
+    mod_name=$(echo "$quest_data" | jq -r '.mod_name // "Unknown"')
+    author=$(echo "$quest_data" | jq -r '.author // "Unknown"')
+    release_date=$(echo "$quest_data" | jq -r '.release_date // "Unknown"')
+    version=$(echo "$quest_data" | jq -r '.version // "Unknown"')
+    status=$(echo "$quest_data" | jq -r '.status // "active"')
+    
+    echo -e "${CYAN}📦 $quest_name${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    echo -e "${GREEN}Mod Information:${NC}"
+    echo "  Mod Name: $mod_name"
+    echo "  Author: $author"
+    echo "  Release Date: $release_date"
+    echo "  Version: $version"
+    echo "  Status: $status"
+    echo
+    
+    # Show quest progression
+    quests=$(echo "$quest_data" | jq -r '.quests[]? // empty')
+    if [ ! -z "$quests" ]; then
+        echo -e "${GREEN}Quest Progress:${NC}"
+        while IFS= read -r quest; do
+            if [ ! -z "$quest" ]; then
+                echo "  • $quest"
+            fi
+        done <<< "$quests"
+        echo
+    fi
+    
+    if [ "$status" != "completed" ]; then
+        echo "1. Add Quest"
+        echo "2. Mark Quest as Completed"
+        echo "3. Mark Mod as Completed"
+    else
+        echo -e "${GRAY}This mod is completed${NC}"
+    fi
+    echo "4. Back"
+    echo
+    read -p "Select option: " choice
+    
+    case $choice in
+        1) 
+            if [ "$status" != "completed" ]; then
+                add_quest_to_mod "$quest_data"
+            else
+                echo -e "${RED}Invalid option${NC}"; sleep 1
+                manage_existing_modded_quest "$quest_data"
+            fi
+            ;;
+        2) 
+            if [ "$status" != "completed" ]; then
+                mark_quest_completed "$quest_data"
+            else
+                echo -e "${RED}Invalid option${NC}"; sleep 1
+                manage_existing_modded_quest "$quest_data"
+            fi
+            ;;
+        3) 
+            if [ "$status" != "completed" ]; then
+                mark_mod_completed "$quest_data"
+            else
+                echo -e "${RED}Invalid option${NC}"; sleep 1
+                manage_existing_modded_quest "$quest_data"
+            fi
+            ;;
+        4) existing_modded_quest_menu ;;
+        *) echo -e "${RED}Invalid option${NC}"; sleep 1; manage_existing_modded_quest "$quest_data" ;;
+    esac
+}
+
+# New Modded Quest Menu
+new_modded_quest_menu() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}✨ New Modded Quest${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    echo -e "${GREEN}Create New Modded Quest${NC}"
+    echo
+    
+    # Get quest information
+    read -p "Quest Name: " quest_name
+    if [ -z "$quest_name" ]; then
+        echo -e "${RED}Error: Quest name is required${NC}"
+        sleep 2
+        collectibles_menu
+        return
+    fi
+    
+    read -p "Author Name: " author_name
+    if [ -z "$author_name" ]; then
+        echo -e "${RED}Error: Author name is required${NC}"
+        sleep 2
+        collectibles_menu
+        return
+    fi
+    
+    read -p "When did it come out: " release_date
+    if [ -z "$release_date" ]; then
+        echo -e "${RED}Error: Release date is required${NC}"
+        sleep 2
+        collectibles_menu
+        return
+    fi
+    
+    read -p "Quest Version: " quest_version
+    if [ -z "$quest_version" ]; then
+        echo -e "${RED}Error: Quest version is required${NC}"
+        sleep 2
+        collectibles_menu
+        return
+    fi
+    
+    # Create the new modded quest object
+    new_quest=$(jq -n \
+        --arg quest_name "$quest_name" \
+        --arg mod_name "$quest_name" \
+        --arg author "$author_name" \
+        --arg release_date "$release_date" \
+        --arg version "$quest_version" \
+        '{
+            quest_name: $quest_name,
+            mod_name: $mod_name,
+            author: $author,
+            release_date: $release_date,
+            version: $version,
+            status: "active",
+            quests: []
+        }')
+    
+    # Add the new modded quest to character data
+    jq "map(if .id == \"$char_id\" then .quests.modded += [$new_quest] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+    
+    echo
+    echo -e "${GREEN}✓ New modded quest created: $quest_name${NC}"
+    sleep 2
+    
+    # Now go to manage this quest
+    manage_existing_modded_quest "$new_quest"
+}
+
+# Add quest to existing mod
+add_quest_to_mod() {
+    local quest_data=$1
+    local mod_name=$(echo "$quest_data" | jq -r '.mod_name')
+    
+    echo
+    read -p "Quest Name: " new_quest_name
+    
+    if [ -z "$new_quest_name" ]; then
+        echo -e "${RED}Error: Quest name is required${NC}"
+        sleep 2
+        manage_existing_modded_quest "$quest_data"
+        return
+    fi
+    
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    # Add quest to the specific mod
+    jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[] | if .mod_name == \"$mod_name\" then .quests += [\"$new_quest_name\"] else . end] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+    
+    echo -e "${GREEN}✓ Quest added: $new_quest_name${NC}"
+    sleep 2
+    
+    # Reload the updated quest data and continue managing
+    updated_quest_data=$(jq -r ".[] | select(.id == \"$char_id\") | .quests.modded[] | select(.mod_name == \"$mod_name\")" "$CHARACTERS_FILE")
+    manage_existing_modded_quest "$updated_quest_data"
+}
+
+# Mark individual quest as completed
+mark_quest_completed() {
+    local quest_data=$1
+    local mod_name=$(echo "$quest_data" | jq -r '.mod_name')
+    
+    # Get list of active quests
+    active_quests=$(echo "$quest_data" | jq -r '.quests[]? // empty')
+    
+    if [ -z "$active_quests" ]; then
+        echo -e "${YELLOW}No active quests to complete${NC}"
+        sleep 2
+        manage_existing_modded_quest "$quest_data"
+        return
+    fi
+    
+    echo
+    echo -e "${GREEN}Select quest to mark as completed:${NC}"
+    echo
+    
+    quest_array=()
+    counter=1
+    
+    while IFS= read -r quest; do
+        if [ ! -z "$quest" ]; then
+            echo "$counter. $quest"
+            quest_array+=("$quest")
+            counter=$((counter + 1))
+        fi
+    done <<< "$active_quests"
+    
+    echo
+    echo "0. Back"
+    echo
+    read -p "Select quest (0-$((counter-1))): " quest_choice
+    
+    if [ "$quest_choice" = "0" ]; then
+        manage_existing_modded_quest "$quest_data"
+        return
+    fi
+    
+    if [ "$quest_choice" -ge 1 ] && [ "$quest_choice" -lt "$counter" ]; then
+        quest_to_complete="${quest_array[$((quest_choice-1))]}"
+        char_id=$(cat "$CURRENT_CHAR_FILE")
+        
+        # Remove the completed quest from the mod's quest list
+        jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[] | if .mod_name == \"$mod_name\" then .quests = [.quests[] | select(. != \"$quest_to_complete\")] else . end] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+        
+        echo -e "${GREEN}✓ Quest completed: $quest_to_complete${NC}"
+        sleep 2
+        
+        # Reload and continue
+        updated_quest_data=$(jq -r ".[] | select(.id == \"$char_id\") | .quests.modded[] | select(.mod_name == \"$mod_name\")" "$CHARACTERS_FILE")
+        manage_existing_modded_quest "$updated_quest_data"
+    else
+        echo -e "${RED}Invalid selection${NC}"
+        sleep 1
+        mark_quest_completed "$quest_data"
+    fi
+}
+
+# Mark entire mod as completed
+mark_mod_completed() {
+    local quest_data=$1
+    local mod_name=$(echo "$quest_data" | jq -r '.mod_name')
+    
+    echo
+    echo -e "${YELLOW}⚠️  Are you sure you want to mark the entire mod '$mod_name' as completed?${NC}"
+    read -p "Type 'yes' to confirm: " confirm
+    
+    if [ "$confirm" = "yes" ]; then
+        char_id=$(cat "$CURRENT_CHAR_FILE")
+        
+        # Mark the mod as completed and clear remaining quests
+        jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[] | if .mod_name == \"$mod_name\" then .status = \"completed\" | .quests = [] else . end] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+        
+        echo -e "${GREEN}✓ Mod completed: $mod_name${NC}"
+        sleep 2
+        existing_modded_quest_menu
+    else
+        echo -e "${YELLOW}Operation cancelled${NC}"
+        sleep 1
+        manage_existing_modded_quest "$quest_data"
+    fi
+}
+
+# Quick Quest Actions - Enhanced Quest Management
+quick_quest_actions() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}🎯 Quick Quest Actions${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    echo -e "${GREEN}Quick Actions:${NC}"
+    echo "1. 🔥 Complete Multiple Quests"
+    echo "2. 📝 Bulk Add Quests to Mod"
+    echo "3. 🗂️ Quest Status Overview"
+    echo "4. 🔄 Transfer Quests Between Mods"
+    echo "5. 📊 Quest Statistics"
+    echo "6. 🗑️ Remove Completed Mods"
+    echo "7. ← Back"
+    echo
+    read -p "Select option: " choice
+    
+    case $choice in
+        1) complete_multiple_quests ;;
+        2) bulk_add_quests ;;
+        3) quest_status_overview ;;
+        4) transfer_quests ;;
+        5) quest_statistics ;;
+        6) remove_completed_mods ;;
+        7) dlc_modded_menu ;;
+        *) echo -e "${RED}Invalid option${NC}"; sleep 1; quick_quest_actions ;;
+    esac
+}
+
+# Complete multiple quests at once
+complete_multiple_quests() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}🔥 Complete Multiple Quests${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    # Get all active modded quests
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    modded_quests=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status != "completed")')
+    
+    if [ -z "$modded_quests" ]; then
+        echo -e "${YELLOW}No active modded quests found.${NC}"
+        read -p "Press Enter to continue..."
+        quick_quest_actions
+        return
+    fi
+    
+    echo -e "${GREEN}Select quests to complete (space-separated numbers):${NC}"
+    echo
+    
+    quest_list=()
+    counter=1
+    
+    while IFS= read -r quest_data; do
+        if [ ! -z "$quest_data" ]; then
+            mod_name=$(echo "$quest_data" | jq -r '.mod_name')
+            quest_count=$(echo "$quest_data" | jq -r '.quests | length')
+            echo "$counter. $mod_name ($quest_count active quests)"
+            quest_list+=("$quest_data")
+            counter=$((counter + 1))
+        fi
+    done <<< "$modded_quests"
+    
+    echo
+    echo "0. Back"
+    echo
+    read -p "Enter quest numbers (e.g., 1 3 5): " selections
+    
+    if [ "$selections" = "0" ]; then
+        quick_quest_actions
+        return
+    fi
+    
+    # Process selections
+    for selection in $selections; do
+        if [ "$selection" -ge 1 ] && [ "$selection" -lt "$counter" ]; then
+            quest_data="${quest_list[$((selection-1))]}"
+            mod_name=$(echo "$quest_data" | jq -r '.mod_name')
+            jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[] | if .mod_name == \"$mod_name\" then .status = \"completed\" | .quests = [] else . end] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+            echo -e "${GREEN}✓ Completed all quests in: $mod_name${NC}"
+        fi
+    done
+    
+    echo
+    read -p "Press Enter to continue..."
+    quick_quest_actions
+}
+
+# Bulk add quests to a mod
+bulk_add_quests() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}📝 Bulk Add Quests to Mod${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    # Get all active mods
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    active_mods=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status != "completed")')
+    
+    if [ -z "$active_mods" ]; then
+        echo -e "${YELLOW}No active mods found. Create a new modded quest first.${NC}"
+        read -p "Press Enter to continue..."
+        quick_quest_actions
+        return
+    fi
+    
+    echo -e "${GREEN}Select mod to add quests to:${NC}"
+    echo
+    
+    mod_list=()
+    counter=1
+    
+    while IFS= read -r mod_data; do
+        if [ ! -z "$mod_data" ]; then
+            mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+            echo "$counter. $mod_name"
+            mod_list+=("$mod_data")
+            counter=$((counter + 1))
+        fi
+    done <<< "$active_mods"
+    
+    echo
+    echo "0. Back"
+    echo
+    read -p "Select mod (0-$((counter-1))): " mod_choice
+    
+    if [ "$mod_choice" = "0" ]; then
+        quick_quest_actions
+        return
+    fi
+    
+    if [ "$mod_choice" -ge 1 ] && [ "$mod_choice" -lt "$counter" ]; then
+        selected_mod="${mod_list[$((mod_choice-1))]}"
+        mod_name=$(echo "$selected_mod" | jq -r '.mod_name')
+        
+        echo
+        echo -e "${GREEN}Adding quests to: $mod_name${NC}"
+        echo -e "${CYAN}Enter quest names (one per line, empty line to finish):${NC}"
+        echo
+        
+        quest_names=()
+        while true; do
+            read -p "Quest name: " quest_name
+            if [ -z "$quest_name" ]; then
+                break
+            fi
+            quest_names+=("$quest_name")
+        done
+        
+        # Add all quests to the mod
+        for quest_name in "${quest_names[@]}"; do
+            jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[] | if .mod_name == \"$mod_name\" then .quests += [\"$quest_name\"] else . end] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+            echo -e "${GREEN}✓ Added: $quest_name${NC}"
+        done
+        
+        echo
+        echo -e "${GREEN}Added ${#quest_names[@]} quests to $mod_name${NC}"
+    else
+        echo -e "${RED}Invalid selection${NC}"
+        sleep 1
+        bulk_add_quests
+        return
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+    quick_quest_actions
+}
+
+# Quest Status Overview
+quest_status_overview() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}🗂️ Quest Status Overview${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    
+    # Count totals
+    total_mods=$(echo "$char_data" | jq '.quests.modded | length // 0')
+    active_mods=$(echo "$char_data" | jq '[.quests.modded[]? | select(.status != "completed")] | length')
+    completed_mods=$(echo "$char_data" | jq '[.quests.modded[]? | select(.status == "completed")] | length')
+    
+    # Count total quests
+    total_active_quests=0
+    active_mods_data=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status != "completed")')
+    while IFS= read -r mod_data; do
+        if [ ! -z "$mod_data" ]; then
+            quest_count=$(echo "$mod_data" | jq '.quests | length')
+            total_active_quests=$((total_active_quests + quest_count))
+        fi
+    done <<< "$active_mods_data"
+    
+    echo -e "${CYAN}📊 Summary:${NC}"
+    echo "  Total Mods: $total_mods"
+    echo "  Active Mods: $active_mods"
+    echo "  Completed Mods: $completed_mods"
+    echo "  Active Quests: $total_active_quests"
+    echo
+    
+    if [ "$active_mods" -gt 0 ]; then
+        echo -e "${GREEN}Active Mods:${NC}"
+        echo
+        while IFS= read -r mod_data; do
+            if [ ! -z "$mod_data" ]; then
+                mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+                author=$(echo "$mod_data" | jq -r '.author // "Unknown"')
+                quest_count=$(echo "$mod_data" | jq '.quests | length')
+                echo "  📦 $mod_name by $author ($quest_count active)"
+            fi
+        done <<< "$active_mods_data"
+        echo
+    fi
+    
+    if [ "$completed_mods" -gt 0 ]; then
+        echo -e "${GRAY}Completed Mods:${NC}"
+        echo
+        completed_mods_data=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status == "completed")')
+        while IFS= read -r mod_data; do
+            if [ ! -z "$mod_data" ]; then
+                mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+                author=$(echo "$mod_data" | jq -r '.author // "Unknown"')
+                echo "  ✅ $mod_name by $author"
+            fi
+        done <<< "$completed_mods_data"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+    quick_quest_actions
+}
+
+# Quest Progress Report - Enhanced reporting
+quest_progress_report() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}📋 Quest Progress Report${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    char_name=$(echo "$char_data" | jq -r '.name')
+    game_type=$(echo "$char_data" | jq -r '.game_type // "Main"')
+    
+    echo -e "${GREEN}Character:${NC} $char_name"
+    echo -e "${GREEN}Game Type:${NC} $game_type"
+    echo
+    
+    # Main and DLC quest counts
+    main_quests=$(echo "$char_data" | jq '.quests.main | length // 0')
+    dlc_quests=$(echo "$char_data" | jq '.quests.dlc | length // 0')
+    
+    echo -e "${CYAN}📊 Quest Summary:${NC}"
+    echo "  Main Quests: $main_quests active"
+    echo "  DLC Quests: $dlc_quests active"
+    
+    # Modded quest details
+    if [[ "$game_type" == *"Modded"* ]]; then
+        total_mods=$(echo "$char_data" | jq '.quests.modded | length // 0')
+        active_mods=$(echo "$char_data" | jq '[.quests.modded[]? | select(.status != "completed")] | length')
+        completed_mods=$(echo "$char_data" | jq '[.quests.modded[]? | select(.status == "completed")] | length')
+        
+        echo "  Modded Content:"
+        echo "    - Total Mods: $total_mods"
+        echo "    - Active Mods: $active_mods"
+        echo "    - Completed Mods: $completed_mods"
+        
+        if [ "$active_mods" -gt 0 ]; then
+            echo
+            echo -e "${GREEN}📦 Active Modded Quests:${NC}"
+            active_mods_data=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status != "completed")')
+            while IFS= read -r mod_data; do
+                if [ ! -z "$mod_data" ]; then
+                    mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+                    author=$(echo "$mod_data" | jq -r '.author // "Unknown"')
+                    version=$(echo "$mod_data" | jq -r '.version // "Unknown"')
+                    quest_count=$(echo "$mod_data" | jq '.quests | length')
+                    
+                    echo "  $mod_name"
+                    echo "    Author: $author | Version: $version"
+                    echo "    Active Quests: $quest_count"
+                    
+                    # Show quest list if not too many
+                    if [ "$quest_count" -le 5 ] && [ "$quest_count" -gt 0 ]; then
+                        quests=$(echo "$mod_data" | jq -r '.quests[]?')
+                        while IFS= read -r quest; do
+                            if [ ! -z "$quest" ]; then
+                                echo "      • $quest"
+                            fi
+                        done <<< "$quests"
+                    elif [ "$quest_count" -gt 5 ]; then
+                        echo "      • (Too many quests to display individually)"
+                    fi
+                    echo
+                fi
+            done
+        fi
+    else
+        echo "  Modded Content: Not Available"
+    fi
+    
+    # Completion rate
+    if [[ "$game_type" == *"Modded"* ]] && [ "$total_mods" -gt 0 ]; then
+        completion_rate=$((completed_mods * 100 / total_mods))
+        echo -e "${CYAN}📈 Mod Completion Rate:${NC} $completion_rate% ($completed_mods/$total_mods mods completed)"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+    dlc_modded_menu
+}
+
+# Transfer quests between mods (advanced feature)
+transfer_quests() {
+    echo -e "${YELLOW}🚧 Transfer Quests feature coming soon!${NC}"
+    echo "This feature will allow you to move quests between different mods."
+    sleep 2
+    quick_quest_actions
+}
+
+# Quest statistics
+quest_statistics() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}📊 Quest Statistics${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    
+    # Calculate various statistics
+    total_mods=$(echo "$char_data" | jq '.quests.modded | length // 0')
+    active_mods=$(echo "$char_data" | jq '[.quests.modded[]? | select(.status != "completed")] | length')
+    completed_mods=$(echo "$char_data" | jq '[.quests.modded[]? | select(.status == "completed")] | length')
+    
+    # Find most active mod
+    if [ "$active_mods" -gt 0 ]; then
+        most_active_mod=""
+        most_active_count=0
+        active_mods_data=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status != "completed")')
+        while IFS= read -r mod_data; do
+            if [ ! -z "$mod_data" ]; then
+                mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+                quest_count=$(echo "$mod_data" | jq '.quests | length')
+                if [ "$quest_count" -gt "$most_active_count" ]; then
+                    most_active_count="$quest_count"
+                    most_active_mod="$mod_name"
+                fi
+            fi
+        done <<< "$active_mods_data"
+    fi
+    
+    # Count total active quests
+    total_active_quests=0
+    active_mods_data=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status != "completed")')
+    while IFS= read -r mod_data; do
+        if [ ! -z "$mod_data" ]; then
+            quest_count=$(echo "$mod_data" | jq '.quests | length')
+            total_active_quests=$((total_active_quests + quest_count))
+        fi
+    done <<< "$active_mods_data"
+    
+    # Average quests per mod
+    if [ "$active_mods" -gt 0 ]; then
+        avg_quests=$((total_active_quests / active_mods))
+    else
+        avg_quests=0
+    fi
+    
+    echo -e "${CYAN}📈 Statistics:${NC}"
+    echo "  Total Mods Installed: $total_mods"
+    echo "  Active Mods: $active_mods"
+    echo "  Completed Mods: $completed_mods"
+    echo "  Total Active Quests: $total_active_quests"
+    echo "  Average Quests per Mod: $avg_quests"
+    
+    if [ ! -z "$most_active_mod" ]; then
+        echo "  Most Active Mod: $most_active_mod ($most_active_count quests)"
+    fi
+    
+    if [ "$total_mods" -gt 0 ]; then
+        completion_percentage=$((completed_mods * 100 / total_mods))
+        echo "  Completion Rate: $completion_percentage%"
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+    quick_quest_actions
+}
+
+# Remove completed mods
+remove_completed_mods() {
+    show_header
+    char_id=$(cat "$CURRENT_CHAR_FILE")
+    
+    echo -e "${CYAN}🗑️ Remove Completed Mods${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    completed_mods=$(echo "$char_data" | jq -c '.quests.modded[]? | select(.status == "completed")')
+    
+    if [ -z "$completed_mods" ]; then
+        echo -e "${YELLOW}No completed mods found.${NC}"
+        read -p "Press Enter to continue..."
+        quick_quest_actions
+        return
+    fi
+    
+    echo -e "${GREEN}Completed mods that can be removed:${NC}"
+    echo
+    
+    mod_list=()
+    counter=1
+    
+    while IFS= read -r mod_data; do
+        if [ ! -z "$mod_data" ]; then
+            mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+            author=$(echo "$mod_data" | jq -r '.author // "Unknown"')
+            echo "$counter. $mod_name by $author"
+            mod_list+=("$mod_data")
+            counter=$((counter + 1))
+        fi
+    done <<< "$completed_mods"
+    
+    echo
+    echo "0. Remove All Completed Mods"
+    echo "-1. Back"
+    echo
+    read -p "Select mods to remove (space-separated numbers or 0 for all): " selections
+    
+    if [ "$selections" = "-1" ]; then
+        quick_quest_actions
+        return
+    fi
+    
+    if [ "$selections" = "0" ]; then
+        echo
+        echo -e "${YELLOW}⚠️  Are you sure you want to remove ALL completed mods?${NC}"
+        read -p "Type 'yes' to confirm: " confirm
+        if [ "$confirm" = "yes" ]; then
+            jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[]? | select(.status != \"completed\")] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+            echo -e "${GREEN}✓ All completed mods removed${NC}"
+        else
+            echo -e "${YELLOW}Operation cancelled${NC}"
+        fi
+    else
+        # Remove selected mods
+        for selection in $selections; do
+            if [ "$selection" -ge 1 ] && [ "$selection" -lt "$counter" ]; then
+                mod_data="${mod_list[$((selection-1))]}"
+                mod_name=$(echo "$mod_data" | jq -r '.mod_name')
+                jq "map(if .id == \"$char_id\" then .quests.modded = [.quests.modded[]? | select(.mod_name != \"$mod_name\")] else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
+                echo -e "${GREEN}✓ Removed: $mod_name${NC}"
+            fi
+        done
+    fi
+    
+    echo
+    read -p "Press Enter to continue..."
+    quick_quest_actions
+}
+
 # Progress Overview
 progress_overview() {
     show_header
@@ -1095,7 +2140,18 @@ progress_overview() {
     faction=$(echo "$char_data" | jq -r '.faction // "None"')
     game_type=$(echo "$char_data" | jq -r '.game_type // "Main"')
     
+    # Get platform information
+    platform_type=$(echo "$char_data" | jq -r '.platform.type // "PC"')
+    if [[ "$platform_type" == "PC" ]]; then
+        distribution=$(echo "$char_data" | jq -r '.platform.distribution // "Steam"')
+        platform_display="$platform_type ($distribution)"
+    else
+        console_type=$(echo "$char_data" | jq -r '.platform.console_type // "PS4/Xbox One"')
+        platform_display="$platform_type ($console_type)"
+    fi
+    
     echo -e "${GREEN}Character:${NC} $char_name | Level $char_level | $faction | $game_type"
+    echo -e "${GREEN}Platform:${NC} $platform_display"
     echo
     
     # SPECIAL total
@@ -1205,6 +2261,19 @@ view_character_summary() {
     echo "  Level:    $(echo "$char_data" | jq -r '.level')"
     echo "  Faction:  $(echo "$char_data" | jq -r '.faction // "None"')"
     echo "  Game:     $(echo "$char_data" | jq -r '.game_type // "Main"')"
+    
+    # Platform information
+    platform_type=$(echo "$char_data" | jq -r '.platform.type // "PC"')
+    if [[ "$platform_type" == "PC" ]]; then
+        distribution=$(echo "$char_data" | jq -r '.platform.distribution // "Steam"')
+        platform_display="$platform_type ($distribution)"
+    else
+        console_type=$(echo "$char_data" | jq -r '.platform.console_type // "PS4/Xbox One"')
+        platform_display="$platform_type ($console_type)"
+    fi
+    mod_support=$(echo "$char_data" | jq -r '.platform.mod_support // "Full"')
+    echo "  Platform: $platform_display"
+    echo "  Mod Support: $mod_support"
     
     echo
     echo -e "${GREEN}S.P.E.C.I.A.L:${NC}"
@@ -1930,11 +2999,11 @@ edit_character_details() {
                 3) new_game_type="Main+DLC+Modded" ;;
                 *) new_game_type="Main" ;;
             esac
+            jq "map(if .id == \"$char_id\" then .game_type = \"$new_game_type\" else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
             if [[ "$new_game_type" == *"Modded"* ]]; then
-                echo -e "${YELLOW}Note: Using modded content. Quest items may affect inventory.${NC}"
+                check_mod_compatibility "$char_id" "warn"
                 sleep 2
             fi
-            jq "map(if .id == \"$char_id\" then .game_type = \"$new_game_type\" else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
             echo -e "${GREEN}Game type updated to $new_game_type${NC}"
             sleep 1
             edit_character_details
@@ -1957,28 +3026,50 @@ dlc_modded_menu() {
     
     game_type=$(jq -r ".[] | select(.id == \"$char_id\") | .game_type // \"Main\"" "$CHARACTERS_FILE")
     
-    echo -e "${CYAN}DLC & Modded Content${NC}"
+    echo -e "${CYAN}📜 Quests & Progress${NC}"
     echo -e "${GREEN}Current Game Type: $game_type${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
     if [[ "$game_type" == *"Modded"* ]]; then
-        echo -e "${YELLOW}⚠ Warning: You are using a modded profile.${NC}"
-        echo -e "${YELLOW}Quest items may affect your character's inventory.${NC}"
+        check_mod_compatibility "$char_id" "warn"
         echo
     fi
     
-    echo -e "${GRAY}1. Main Quest Progress (Temporarily Disabled)${NC}"
+    # Quest Progress Overview
+    char_data=$(jq ".[] | select(.id == \"$char_id\")" "$CHARACTERS_FILE")
+    main_quests=$(echo "$char_data" | jq '.quests.main | length // 0')
+    dlc_quests=$(echo "$char_data" | jq '.quests.dlc | length // 0')
+    modded_quests=$(echo "$char_data" | jq '.quests.modded | length // 0')
     
+    echo -e "${CYAN}📊 Quest Overview:${NC}"
+    echo -e "  Main Quests: $main_quests active"
+    echo -e "  DLC Quests: $dlc_quests active" 
+    if [[ "$game_type" == *"Modded"* ]]; then
+        echo -e "  Modded Quests: $modded_quests active"
+    fi
+    echo
+    
+    echo -e "${GREEN}Quest Management:${NC}"
+    echo -e "${GRAY}1. Main Quest Progress (Temporarily Disabled)${NC}"
     echo -e "${GRAY}2. DLC Quest Progress (Temporarily Disabled)${NC}"
     
     if [[ "$game_type" == *"Modded"* ]]; then
-        echo "3. Modded Quest Progress"
+        echo "3. 🔧 Modded Quest Management"
+        echo "4. 📦 View Existing Modded Quests"
+        echo "5. ✨ Create New Modded Quest"
+        echo "6. 🎯 Quick Quest Actions"
+        echo "7. 📋 Quest Progress Report"
     else
-        echo -e "${GRAY}3. Modded Quest Progress (Not Available)${NC}"
+        echo -e "${GRAY}3. Modded Quest Management (Not Available)${NC}"
+        echo -e "${GRAY}4. View Existing Modded Quests (Not Available)${NC}"
+        echo -e "${GRAY}5. Create New Modded Quest (Not Available)${NC}"
+        echo -e "${GRAY}6. Quick Quest Actions (Not Available)${NC}"
+        echo -e "${GRAY}7. Quest Progress Report (Limited)${NC}"
     fi
     
-    echo "4. Change Game Type"
-    echo "5. Back"
+    echo "8. ⚙️ Change Game Type"
+    echo "9. ← Back"
     echo
     read -p "Select option: " choice
     
@@ -1995,7 +3086,12 @@ dlc_modded_menu() {
             ;;
         3)
             if [[ "$game_type" == *"Modded"* ]]; then
-                quest_manager "modded"
+                if check_mod_compatibility "$char_id" "block"; then
+                    quest_manager "modded"
+                else
+                    sleep 2
+                    dlc_modded_menu
+                fi
             else
                 echo -e "${RED}Modded content not enabled for this character${NC}"
                 sleep 2
@@ -2003,6 +3099,36 @@ dlc_modded_menu() {
             fi
             ;;
         4)
+            if [[ "$game_type" == *"Modded"* ]]; then
+                existing_modded_quest_menu
+            else
+                echo -e "${RED}Modded content not enabled for this character${NC}"
+                sleep 2
+                dlc_modded_menu
+            fi
+            ;;
+        5)
+            if [[ "$game_type" == *"Modded"* ]]; then
+                new_modded_quest_menu
+            else
+                echo -e "${RED}Modded content not enabled for this character${NC}"
+                sleep 2
+                dlc_modded_menu
+            fi
+            ;;
+        6)
+            if [[ "$game_type" == *"Modded"* ]]; then
+                quick_quest_actions
+            else
+                echo -e "${RED}Modded content not enabled for this character${NC}"
+                sleep 2
+                dlc_modded_menu
+            fi
+            ;;
+        7)
+            quest_progress_report
+            ;;
+        8)
             echo "Select new game type:"
             echo "1. Main Game Only"
             echo "2. Main Game + DLC"
@@ -2014,16 +3140,16 @@ dlc_modded_menu() {
                 3) new_game_type="Main+DLC+Modded" ;;
                 *) new_game_type="Main" ;;
             esac
+            jq "map(if .id == \"$char_id\" then .game_type = \"$new_game_type\" else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
             if [[ "$new_game_type" == *"Modded"* ]]; then
-                echo -e "${YELLOW}Note: Switching to modded content. Quest items may affect inventory.${NC}"
+                check_mod_compatibility "$char_id" "warn"
                 sleep 2
             fi
-            jq "map(if .id == \"$char_id\" then .game_type = \"$new_game_type\" else . end)" "$CHARACTERS_FILE" > "$CHARACTERS_FILE.tmp" && mv "$CHARACTERS_FILE.tmp" "$CHARACTERS_FILE"
             echo -e "${GREEN}Game type updated to $new_game_type${NC}"
             sleep 2
             dlc_modded_menu
             ;;
-        5)
+        9)
             character_menu
             ;;
         *)
@@ -2223,78 +3349,151 @@ remove_character() {
 
 # Check for jq dependency and offer auto-installation
 check_dependencies() {
-    if ! command -v jq &> /dev/null; then
+    # Check for jq
+    if ! command -v jq >/dev/null 2>&1; then
         echo -e "${RED}Error: jq is required but not installed.${NC}"
         echo -e "${YELLOW}Would you like to install jq automatically? [y/N]${NC}"
         read -p "> " install_choice
         
-        if [[ "$install_choice" =~ ^[Yy]$ ]]; then
+        case "$install_choice" in
+            [Yy]|[Yy][Ee][Ss])
             echo -e "${CYAN}Detecting platform and attempting installation...${NC}"
             
             # Detect OS and package manager
-            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-                if command -v apt &> /dev/null; then
-                    echo "Installing jq using apt..."
-                    sudo apt update && sudo apt install -y jq
-                elif command -v dnf &> /dev/null; then
-                    echo "Installing jq using dnf..."
-                    sudo dnf install -y jq
-                elif command -v yum &> /dev/null; then
-                    echo "Installing jq using yum..."
-                    sudo yum install -y jq
-                elif command -v pacman &> /dev/null; then
-                    echo "Installing jq using pacman..."
-                    sudo pacman -S --noconfirm jq
-                elif command -v zypper &> /dev/null; then
-                    echo "Installing jq using zypper..."
-                    sudo zypper install -y jq
-                else
-                    echo -e "${RED}Could not detect package manager. Please install jq manually.${NC}"
-                    show_manual_install_instructions
-                    exit 1
-                fi
-            elif [[ "$OSTYPE" == "darwin"* ]]; then
-                if command -v brew &> /dev/null; then
-                    echo "Installing jq using Homebrew..."
-                    brew install jq
-                elif command -v port &> /dev/null; then
-                    echo "Installing jq using MacPorts..."
-                    sudo port install jq
-                else
-                    echo -e "${RED}Neither Homebrew nor MacPorts found. Installing Homebrew first...${NC}"
-                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                    brew install jq
-                fi
-            elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-                echo "Windows environment detected. Installing jq using package manager..."
-                if command -v choco &> /dev/null; then
-                    choco install jq
-                elif command -v winget &> /dev/null; then
-                    winget install jqlang.jq
-                else
-                    echo -e "${RED}No supported package manager found on Windows.${NC}"
-                    show_manual_install_instructions
-                    exit 1
-                fi
+            install_jq
+            ;;
+            *)
+                echo -e "${YELLOW}Installation cancelled.${NC}"
+                show_manual_install_instructions
+                exit 1
+                ;;
+        esac
+    fi
+    
+    # Check for bash version (need at least 3.0 for arrays)
+    if [ "${BASH_VERSION%%.*}" -lt 3 ]; then
+        echo -e "${RED}Error: This script requires Bash 3.0 or later.${NC}"
+        echo -e "${YELLOW}Current version: $BASH_VERSION${NC}"
+        exit 1
+    fi
+}
+
+# Install jq based on detected platform
+install_jq() {
+    echo -e "${CYAN}Detecting platform and attempting installation...${NC}"
+    
+    # Detect OS type more reliably
+    local os_type=""
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        os_type="$ID"
+    elif [ "$(uname)" = "Darwin" ]; then
+        os_type="macos"
+    elif [ "$(uname -o 2>/dev/null)" = "Msys" ] || [ "$(uname -o 2>/dev/null)" = "Cygwin" ]; then
+        os_type="windows"
+    else
+        os_type="$(uname | tr '[:upper:]' '[:lower:]')"
+    fi
+    
+    case "$os_type" in
+        ubuntu|debian|raspbian)
+            if command -v apt >/dev/null 2>&1; then
+                echo "Installing jq using apt..."
+                sudo apt update && sudo apt install -y jq
             else
-                echo -e "${RED}Unsupported operating system: $OSTYPE${NC}"
+                echo -e "${RED}apt not found on Debian-based system.${NC}"
                 show_manual_install_instructions
                 exit 1
             fi
-            
-            # Verify installation
-            if command -v jq &> /dev/null; then
-                echo -e "${GREEN}jq successfully installed!${NC}"
+            ;;
+        fedora|centos|rhel)
+            if command -v dnf >/dev/null 2>&1; then
+                echo "Installing jq using dnf..."
+                sudo dnf install -y jq
+            elif command -v yum >/dev/null 2>&1; then
+                echo "Installing jq using yum..."
+                sudo yum install -y jq
             else
-                echo -e "${RED}Installation failed. Please install jq manually.${NC}"
+                echo -e "${RED}Neither dnf nor yum found on Red Hat-based system.${NC}"
                 show_manual_install_instructions
                 exit 1
             fi
-        else
-            echo -e "${YELLOW}Installation cancelled.${NC}"
+            ;;
+        arch|manjaro)
+            if command -v pacman >/dev/null 2>&1; then
+                echo "Installing jq using pacman..."
+                sudo pacman -S --noconfirm jq
+            else
+                echo -e "${RED}pacman not found on Arch-based system.${NC}"
+                show_manual_install_instructions
+                exit 1
+            fi
+            ;;
+        opensuse*|sles)
+            if command -v zypper >/dev/null 2>&1; then
+                echo "Installing jq using zypper..."
+                sudo zypper install -y jq
+            else
+                echo -e "${RED}zypper not found on SUSE-based system.${NC}"
+                show_manual_install_instructions
+                exit 1
+            fi
+            ;;
+        alpine)
+            if command -v apk >/dev/null 2>&1; then
+                echo "Installing jq using apk..."
+                sudo apk add jq
+            else
+                echo -e "${RED}apk not found on Alpine system.${NC}"
+                show_manual_install_instructions
+                exit 1
+            fi
+            ;;
+        macos)
+            if command -v brew >/dev/null 2>&1; then
+                echo "Installing jq using Homebrew..."
+                brew install jq
+            elif command -v port >/dev/null 2>&1; then
+                echo "Installing jq using MacPorts..."
+                sudo port install jq
+            else
+                echo -e "${YELLOW}Installing Homebrew first...${NC}"
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                if command -v brew >/dev/null 2>&1; then
+                    brew install jq
+                else
+                    echo -e "${RED}Failed to install Homebrew.${NC}"
+                    show_manual_install_instructions
+                    exit 1
+                fi
+            fi
+            ;;
+        windows)
+            echo "Windows environment detected. Installing jq using package manager..."
+            if command -v choco >/dev/null 2>&1; then
+                choco install jq
+            elif command -v winget >/dev/null 2>&1; then
+                winget install jqlang.jq
+            else
+                echo -e "${RED}Please install Chocolatey or use Windows Package Manager to install jq.${NC}"
+                show_manual_install_instructions
+                exit 1
+            fi
+            ;;
+        *)
+            echo -e "${RED}Unsupported operating system: $os_type${NC}"
             show_manual_install_instructions
             exit 1
-        fi
+            ;;
+    esac
+            
+    # Verify installation
+    if command -v jq >/dev/null 2>&1; then
+        echo -e "${GREEN}jq successfully installed!${NC}"
+    else
+        echo -e "${RED}Installation failed. Please install jq manually.${NC}"
+        show_manual_install_instructions
+        exit 1
     fi
 }
 
